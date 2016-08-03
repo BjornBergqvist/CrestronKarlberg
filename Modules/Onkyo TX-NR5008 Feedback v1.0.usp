@@ -1,0 +1,587 @@
+/***********************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+***********************************************************************************/
+/*
+Dealer Name:	Crestron Electronics
+System Name:
+System Number:
+Programmer:		PAC
+Comments:
+*/
+/***********************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+***********************************************************************************/
+#SYMBOL_NAME "Onkyo TX-NR5008 Feedback Processor v1.0"
+// #HINT ""
+#DEFINE_CONSTANT	ciKEYBACK		11
+#DEFINE_CONSTANT	ciKEYCLEAR	12
+#DEFINE_CONSTANT	ciKEYENTER	13
+
+#DEFINE_CONSTANT	ciPASSLEN		4
+
+#DEFINE_CONSTANT	csSLEEP					"!1SLP"
+#DEFINE_CONSTANT	csSIRIUSCHNAME	"!1SCN"
+#DEFINE_CONSTANT	csSIRIUSCHNUM		"!1SCH"
+#DEFINE_CONSTANT	csSIRIUSTITLE		"!1STI"
+#DEFINE_CONSTANT	csSIRIUSARTIST	"!1SAT"
+#DEFINE_CONSTANT	csSIRIUSCAT			"!1SCT"
+#DEFINE_CONSTANT	csSIRIUSPL			"!1SLK"
+#DEFINE_CONSTANT	csSIRIUSPLIN		"!1SLKINPUT"
+#DEFINE_CONSTANT	csSIRIUSPLWRONG	"!1SLKWRONG"
+#DEFINE_CONSTANT	csTUNER					"!1TUN"
+#DEFINE_CONSTANT	csTUNERZONE			"!1TUZ"
+#DEFINE_CONSTANT	csTUNER3				"!1TU3"
+#DEFINE_CONSTANT	csTUNER4				"!1TU4"
+#DEFINE_CONSTANT	csVOLUME				"!1MVL"
+#DEFINE_CONSTANT	csVOLUMEZONE		"!1ZVL"
+#DEFINE_CONSTANT	csVOLUME3				"!1VL3"
+#DEFINE_CONSTANT	csVOLUME4				"!1VL4"
+#DEFINE_CONSTANT	csHDARTIST			"!1HAT"
+#DEFINE_CONSTANT	csHDCHNAME			"!1HCN"
+#DEFINE_CONSTANT	csHDTITLE				"!1HTI"
+#DEFINE_CONSTANT	csHDRADIODETAIL	"!1HDS"
+#DEFINE_CONSTANT	csHDTUNERSTATUS	"!1HTS"
+#DEFINE_CONSTANT	csNETLINEASCII	"!1NLSA"
+#DEFINE_CONSTANT	csNETLINECURSOR	"!1NLSC"
+#DEFINE_CONSTANT	csNATARTIST			"!1NAT"
+#DEFINE_CONSTANT	csNATALBUM			"!1NAL"
+#DEFINE_CONSTANT	csNATTITLE			"!1NTI"
+#DEFINE_CONSTANT	csNATTIME				"!1NTM"
+#DEFINE_CONSTANT	csNATTRACK			"!1NTR"
+#DEFINE_CONSTANT	csNATSTATUS			"!1NST"
+
+// #CATEGORY "" 
+#DEFAULT_VOLATILE
+// #DEFAULT_NONVOLATILE
+// #ENABLE_TRACE
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+/***********************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+***********************************************************************************/
+DIGITAL_INPUT	Net_FF_Rew_Pushed, Password_Key[13]; 
+// ANALOG_INPUT 
+// STRING_INPUT 
+BUFFER_INPUT	From_Device$[200];
+
+DIGITAL_OUTPUT	Input_Sirius_Password, Sirius_Password_Wrong;
+ANALOG_OUTPUT	Sleep_Time, Main_Volume_In, Zone_2_Volume_In, Zone_3_Volume_In,
+							Zone_4_Volume_In;
+STRING_OUTPUT	Sirius_Channel_Name$, Sirius_Channel_Number$, Sirius_Title$,
+							Sirius_Artist$, Sirius_Category$,
+							Tuner_Frequency$, Tuner_Zone_Frequency$, Tuner_Zone_3_Frequency$,
+							Tuner_Zone_4_Frequency$,
+							Sirius_Password$, Sirius_Password_Stars$, 
+							HD_Artist$, HD_Channel_Name$, HD_Title$, HD_Radio_Detail$,
+							HD_Tuner_Status$, NAT_Artist$, NAT_Album$, NAT_Title$, NAT_Time$,
+							NAT_Play$, NAT_Repeat$, NAT_Shuffle$, NAT_Track$,
+							To_Device$;
+DIGITAL_OUTPUT	Net_Cursor_Position_Line[10];
+STRING_OUTPUT	Net_Line_Text[10];
+/***********************************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+  Note:  Be sure to initialize all declared STRING variables as needed
+         For example, in Function Main: myString = "";
+***********************************************************************************/
+INTEGER	iTemp, iPassNeeded, iSleep, iFlag1, a, iVol, iVol2, iVol3, iVol4, iTemp1,
+				iCursorPosition, iTemp2, iTemp3, iNetDelay;
+STRING	sTemp[100], sSiriusChName[50], sSiriusChNum[50], sSiriusTitle[50],
+				sSiriusArtist[50], sSiriusCat[50], sTemp1[100], sTuner[24], sTunerZone[24],
+				sTuner3[24], sPassword[4], sPassStars[4], sHDTitle[10], sHDArtist[10],
+				sHDChName[10], sHDDetail[10], sTuner4[24], sLineText[10][64], sNATArtist[64],
+				sNATAlbum[64], sNATTitle[64], sNATTime[64], sNATPlay[1], sNATRepeat[1],
+				sNATShuffle[1], sNATTrack[64];
+/***********************************************************************************
+  Event Handlers
+  (Uncomment and declare additional event handlers as needed)
+***********************************************************************************/
+RELEASE Net_FF_Rew_Pushed
+{
+	wait(500, wNetDelay)
+	{
+		iNetDelay = 0;
+		NAT_Play$ = sNATPlay;
+	}
+}
+
+PUSH Net_FF_Rew_Pushed
+{
+	cancelwait(wNetDelay);
+	iNetDelay = 1;
+}
+
+PUSH Password_Key
+{
+	iTemp = getlastmodifiedarrayindex();
+	if(iPassNeeded = 1)
+	{
+		if(iTemp = ciKEYBACK)
+		{
+			if(len(sPassword) > 0)
+			{
+				sPassword = left(sPassword, len(sPassword) - 1);
+				sPassStars = "";
+				for(a = 1 to len(sPassword))
+				{
+					sPassStars = sPassStars + "*";
+				}
+				Sirius_Password$ = sPassword;
+				Sirius_Password_Stars$ = sPassStars;
+			}
+		}
+		else if(iTemp = ciKEYCLEAR)
+		{
+			sPassword = "";
+			sPassStars = "";
+			Sirius_Password$ = sPassword;
+			Sirius_Password_Stars$ = sPassStars;
+		}
+		else if(iTemp = ciKEYENTER)
+		{
+			makestring(To_Device$, "%s%02s\r", csSIRIUSPL, sPassword);
+			sPassword = "";
+			Sirius_Password$ = sPassword;
+			Sirius_Password_Stars$ = sPassword;
+		}
+		else if(iTemp = 10)
+		{
+			if(len(sPassword) < ciPASSLEN)
+			{
+				makestring(sPassword, "%s0", sPassword);
+				sPassStars = "";
+				for(a = 1 to len(sPassword))
+				{
+					sPassStars = sPassStars + "*";
+				}
+				Sirius_Password$ = sPassword;
+				Sirius_Password_Stars$ = sPassStars;
+			}
+		}
+		else if((iTemp > 0) && (iTemp < 10))
+		{
+			if(len(sPassword) < ciPASSLEN)
+			{
+				makestring(sPassword, "%s%d", sPassword, iTemp);
+				sPassStars = "";
+				for(a = 1 to len(sPassword))
+				{
+					sPassStars = sPassStars + "*";
+				}
+				Sirius_Password$ = sPassword;
+				Sirius_Password_Stars$ = sPassStars;
+			}
+		}
+		iTemp = 100;
+	}
+}
+
+CHANGE From_Device$
+{
+	if(iFlag1 = 0)
+	{
+		iFlag1 = 1;
+		while(find("\x1A", From_Device$) > 0)
+		{
+			sTemp = gather("\x1A", From_Device$);
+			if(find(csSLEEP, sTemp) > 0)
+			{
+				iTemp1 = find(csSLEEP, sTemp);
+				sTemp1 = mid(sTemp, len(csSLEEP) + iTemp1, 2);
+				iTemp = hextoi(sTemp1);
+				if(iTemp <> iSleep)
+				{
+					iSleep = iTemp;
+					Sleep_Time = iSleep;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csVOLUME, sTemp) > 0)
+			{
+				iTemp1 = find(csVOLUME, sTemp);
+				sTemp1 = mid(sTemp, len(csVOLUME) + iTemp1, 2);
+				iTemp = hextoi(sTemp1);
+				if(iTemp <> iVol)
+				{
+					iVol = iTemp;
+					Main_Volume_In = iVol;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csVOLUMEZONE, sTemp) > 0)
+			{
+				iTemp1 = find(csVOLUMEZONE, sTemp);
+				sTemp1 = mid(sTemp, len(csVOLUMEZONE) + iTemp1, 2);
+				iTemp = hextoi(sTemp1);
+				if(iTemp <> iVol2)
+				{
+					iVol2 = iTemp;
+					Zone_2_Volume_In = iVol2;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csVOLUME3, sTemp) > 0)
+			{
+				iTemp1 = find(csVOLUME3, sTemp);
+				sTemp1 = mid(sTemp, len(csVOLUME3) + iTemp1, 2);
+				iTemp = hextoi(sTemp1);
+				if(iTemp <> iVol3)
+				{
+					iVol3 = iTemp;
+					Zone_3_Volume_In = iVol3;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csVOLUME4, sTemp) > 0)
+			{
+				iTemp1 = find(csVOLUME4, sTemp);
+				sTemp1 = mid(sTemp, len(csVOLUME4) + iTemp1, 2);
+				iTemp = hextoi(sTemp1);
+				if(iTemp <> iVol4)
+				{
+					iVol4 = iTemp;
+					Zone_4_Volume_In = iVol4;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csSiriusCHNAME, sTemp) > 0)
+			{
+				iTemp1 = find(csSIRIUSCHNAME, sTemp);
+				sTemp1 = mid(sTemp, len(csSiriusCHNAME) + iTemp1, len(sTemp) - len(csSiriusCHNAME) - iTemp1);
+				if(sSiriusChName <> sTemp1)
+				{
+					sSiriusChName = sTemp1;
+					Sirius_Channel_Name$ = sSiriusChName;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csSiriusCHNUM, sTemp) > 0)
+			{
+				iTemp1 = find(csSIRIUSCHNUM, sTemp);
+				sTemp1 = mid(sTemp, len(csSiriusCHNUM) + iTemp1, len(sTemp) - len(csSiriusCHNUM) - iTemp1);
+				if(sSiriusChNum <> sTemp1)
+				{
+					sSiriusChNum = sTemp1;
+					Sirius_Channel_Number$ = sSiriusChNum;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csSiriusTITLE, sTemp) > 0)
+			{
+				iTemp1 = find(csSIRIUSTITLE, sTemp);
+				sTemp1 = mid(sTemp, len(csSiriusTITLE) + iTemp1, len(sTemp) - len(csSiriusTITLE) - iTemp1);
+				if(sSiriusTitle <> sTemp1)
+				{
+					sSiriusTitle = sTemp1;
+					Sirius_Title$ = sSiriusTitle;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csSiriusARTIST, sTemp) > 0)
+			{
+				iTemp1 = find(csSIRIUSARTIST, sTemp);
+				sTemp1 = mid(sTemp, len(csSiriusARTIST) + iTemp1, len(sTemp) - len(csSiriusARTIST) - iTemp1);
+				if(sSiriusARTIST <> sTemp1)
+				{
+					sSiriusArtist = sTemp1;
+					Sirius_Artist$ = sSiriusArtist;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csSiriusCAT, sTemp) > 0)
+			{
+				iTemp1 = find(csSIRIUSCAT, sTemp);
+				sTemp1 = mid(sTemp, len(csSiriusCAT) + iTemp1, len(sTemp) - len(csSiriusCAT) - iTemp1);
+				if(sSiriusCAT <> sTemp1)
+				{
+					sSiriusCat = sTemp1;
+					Sirius_Category$ = sSiriusCat;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csSiriusPLIN, sTemp) > 0)
+			{
+				iPassNeeded = 1;
+				Input_Sirius_Password = iPassNeeded;
+			}
+
+			else if(find(csSiriusPLWRONG, sTemp) > 0)
+			{
+				iPassNeeded = 0;
+				Input_Sirius_Password = iPassNeeded;
+				pulse(10, Sirius_Password_Wrong);
+			}
+			else if(find(csTUNER, sTemp) > 0)
+			{
+				iTemp1 = find(csTUNER, sTemp);
+				sTemp1 = mid(sTemp, len(csTUNER) + iTemp1, len(sTemp) - len(CSTUNER) - iTemp1);
+				if(sTuner <> sTemp1)
+				{
+					sTuner = sTemp1;
+					Tuner_Frequency$ = sTuner;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csTUNERZONE, sTemp) > 0)
+			{
+				iTemp1 = find(csTUNERZONE, sTemp);
+				sTemp1 = mid(sTemp, len(csTUNERZONE) + iTemp1, len(sTemp) - len(csTUNERZONE) - iTemp1);
+				if(sTunerZone <> sTemp1)
+				{
+					sTunerZone = sTemp1;
+					Tuner_Zone_Frequency$ = sTunerZone;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csTUNER3, sTemp) > 0)
+			{
+				iTemp1 = find(csTUNER3, sTemp);
+				sTemp1 = mid(sTemp, len(csTUNER3) + iTemp1, len(sTemp) - len(csTUNER3) - iTemp1);
+				if(sTuner3 <> sTemp1)
+				{
+					sTuner3 = sTemp1;
+					Tuner_Zone_3_Frequency$ = sTuner3;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csTUNER4, sTemp) > 0)
+			{
+				iTemp1 = find(csTUNER4, sTemp);
+				sTemp1 = mid(sTemp, len(csTUNER4) + iTemp1, len(sTemp) - len(csTUNER4) - iTemp1);
+				if(sTuner4 <> sTemp1)
+				{
+					sTuner4 = sTemp1;
+					Tuner_Zone_4_Frequency$ = sTuner4;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csHDTITLE, sTemp) > 0)
+			{
+				iTemp1 = find(csHDTITLE, sTemp);
+				sTemp1 = mid(sTemp, len(csHDTITLE) + iTemp1, len(sTemp) - len(csHDTITLE) - iTemp1);
+				if(sHDTitle <> sTemp1)
+				{
+					sHDTitle = sTemp1;
+					HD_Title$ = sHDTitle;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csHDARTIST, sTemp) > 0)
+			{
+				iTemp1 = find(csHDARTIST, sTemp);
+				sTemp1 = mid(sTemp, len(csHDARTIST) + iTemp1, len(sTemp) - len(csHDARTIST) - iTemp1);
+				if(sHDARTIST <> sTemp1)
+				{
+					sHDArtist = sTemp1;
+					HD_Artist$ = sHDArtist;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csHDCHNAME, sTemp) > 0)
+			{
+				iTemp1 = find(csHDCHNAME, sTemp);
+				sTemp1 = mid(sTemp, len(csHDCHNAME) + iTemp1, len(sTemp) - len(csHDCHNAME) - iTemp1);
+				if(sHDChName <> sTemp1)
+				{
+					sHDChName = sTemp1;
+					HD_Channel_Name$ = sHDChName;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csHDRADIODETAIL, sTemp) > 0)
+			{
+				iTemp1 = find(csHDRADIODETAIL, sTemp);
+				sTemp1 = mid(sTemp, len(csHDRADIODETAIL) + iTemp1, len(sTemp) - len(csHDRADIODETAIL) - iTemp1);
+				if(sHDDetail <> sTemp1)
+				{
+					sHDDetail = sTemp1;
+					HD_Radio_Detail$ = sHDDetail;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csHDTUNERSTATUS, sTemp) > 0)
+			{
+				iTemp1 = find(csHDTUNERSTATUS, sTemp);
+				sTemp1 = mid(sTemp, len(csHDTUNERSTATUS) + iTemp1, len(sTemp) - len(csHDTUNERSTATUS) - iTemp1);
+				HD_Tuner_Status$ = sTemp1;
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csNETLINEASCII, sTemp) > 0)
+			{
+				iTemp1 = find(csNETLINEASCII, sTemp);
+				iTemp2 = atoi(mid(sTemp, iTemp1 + 2, 8)) + 1;
+				iTemp3 = find("\x1A", sTemp);
+				sTemp1 = mid(sTemp, 9, iTemp3 - 9);
+				if(sLineText[iTemp2] <> sTemp1)
+				{
+					sLineText[iTemp2] = sTemp1;
+					Net_Line_Text[iTemp2] = sLineText[iTemp2];
+				}
+			}
+			else if(find(csNETLINECURSOR, sTemp) > 0)
+			{
+				iTemp1 = find(csNETLINECURSOR, sTemp);
+				iTemp2 = atoi(mid(sTemp, iTemp1 + 2, 8)) + 1;
+				if(mid(sTemp, 7, 1) = "-")
+				{
+					iTemp2 = 0;
+				}
+				if(iCursorPosition <> iTemp2)
+				{
+					iCursorPosition = iTemp2;
+					for(a = 1 to 10)
+					{
+						Net_Cursor_Position_Line[a] = 0;
+					}
+					if(iCursorPosition > 0)
+					{
+						Net_Cursor_Position_Line[iCursorPosition] = 1;
+					}
+				}
+				if(find("P", mid(sTemp, 8, 1)) > 0)
+				{
+					for(a = 1 to 10)
+					{
+						sLineText[a] = "";
+						Net_Line_Text[a] = sLineText[a];
+					}
+				}
+			}
+			else if(find(csNATARTIST, sTemp) > 0)
+			{
+				iTemp1 = find(csNATARTIST, sTemp);
+				sTemp1 = mid(sTemp, len(csNATARTIST) + iTemp1, len(sTemp) - len(csNATARTIST) - iTemp1);
+				if(sNATArtist <> sTemp1)
+				{
+					sNATArtist = sTemp1;
+					NAT_Artist$ = sNATArtist;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csNATALBUM, sTemp) > 0)
+			{
+				iTemp1 = find(csNATALBUM, sTemp);
+				sTemp1 = mid(sTemp, len(csNATALBUM) + iTemp1, len(sTemp) - len(csNATALBUM) - iTemp1);
+				if(sNATAlbum <> sTemp1)
+				{
+					sNATAlbum = sTemp1;
+					NAT_Album$ = sNATAlbum;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csNATTITLE, sTemp) > 0)
+			{
+				iTemp1 = find(csNATTITLE, sTemp);
+				sTemp1 = mid(sTemp, len(csNATTITLE) + iTemp1, len(sTemp) - len(csNATTITLE) - iTemp1);
+				if(sNATTitle <> sTemp1)
+				{
+					sNATTitle = sTemp1;
+					NAT_Title$ = sNATTitle;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csNATTIME, sTemp) > 0)
+			{
+				iTemp1 = find(csNATTIME, sTemp);
+				sTemp1 = mid(sTemp, len(csNATTIME) + iTemp1, len(sTemp) - len(csNATTIME) - iTemp1);
+				if(sNATTime <> sTemp1)
+				{
+					sNATTime = sTemp1;
+					NAT_Time$ = sNATTime;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csNATTRACK, sTemp) > 0)
+			{
+				iTemp1 = find(csNATTRACK, sTemp);
+				sTemp1 = mid(sTemp, len(csNATTRACK) + iTemp1, len(sTemp) - len(csNATTRACK) - iTemp1);
+				if(sNATTrack <> sTemp1)
+				{
+					sNATTrack = sTemp1;
+					NAT_Track$ = sNATTrack;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+			else if(find(csNATSTATUS, sTemp) > 0)
+			{
+				iTemp1 = find(csNATARTIST, sTemp);
+				sTemp1 = chr(byte(sTemp, 6));
+				if(sNATPlay <> sTemp1)
+				{
+					if((sTemp1 = "P") && (iNetDelay <> 1))
+					{
+						sNATPlay = sTemp1;
+						NAT_Play$ = sNATPlay;
+					}
+					else if((sTemp1 = "P") && (iNetDelay = 1))
+					{
+						sNATPlay = sTemp1;
+					}
+					else
+					{
+						sNATPlay = sTemp1;
+						NAT_Play$ = sNATPlay;
+					}
+				}
+				sTemp1 = chr(byte(sTemp, 7));
+				if(sNATRepeat <> sTemp1)
+				{
+					sNATRepeat = sTemp1;
+					NAT_Repeat$ = sNATRepeat;
+				}
+				sTemp1 = chr(byte(sTemp, 8));
+				if(sNATShuffle <> sTemp1)
+				{
+					sNATShuffle = sTemp1;
+					NAT_Shuffle$ = sNATShuffle;
+				}
+				sTemp1 = "";
+				sTemp = "";
+			}
+		}
+		iFlag1 = 0;
+	}
+}
+/***********************************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+***********************************************************************************/
+Function Main()
+{
+	iFlag1 = 0;
+	sTemp = "";
+	sTemp1 = "";
+	iTemp = 100;
+	iNetDelay = 0;
+}

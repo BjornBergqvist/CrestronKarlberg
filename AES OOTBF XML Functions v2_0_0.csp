@@ -1,0 +1,1438 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #HINT ""
+// #DEFINE_CONSTANT
+#CATEGORY "0"
+#DEFINE_CONSTANT MAX_SOURCES             10
+#DEFINE_CONSTANT MAX_ROOMS               24
+#DEFINE_CONSTANT MAX_GROUPS              6
+#DEFINE_CONSTANT MAX_DEVICES             64
+#DEFINE_CONSTANT MAX_FILE_BUFFER         50000
+#DEFINE_CONSTANT MAX_SECTION_FILE_BUFFER 10000
+#DEFINE_CONSTANT DELAYTIME               1000	//10 seconds
+#DEFINE_CONSTANT MODEL_ID_AMFM2			3196
+#DEFINE_CONSTANT MODEL_ID_AMFMXM		3198
+#DEFINE_CONSTANT MODEL_ID_AMFMSR		3197
+#DEFINE_CONSTANT MODEL_ID_IPOD			3191
+#DEFINE_CONSTANT MODEL_ID_AAS1			3192
+#DEFINE_CONSTANT MODEL_ID_AAS2			3193
+#DEFINE_CONSTANT MODEL_ID_AAS4			3194
+#DEFINE_CONSTANT MODEL_ID_GENERIC		2642
+
+#DEFINE_CONSTANT SYSTEMTYPE_OOTBF			1
+#DEFINE_CONSTANT SYSTEMTYPE_SYSTEMBUILDER	2
+#DEFINE_CONSTANT SYSTEMTYPE_CUSTOM			3
+
+#DEFINE_CONSTANT TUNERTYPEAMFM				1
+#DEFINE_CONSTANT TUNERTYPEAMFMXM			2
+#DEFINE_CONSTANT TUNERTYPEAMFMSIRIUS		3
+
+#DEFINE_CONSTANT MAXINTERFACEBLOCKSIZE	7000
+
+//#DEFINE_CONSTANT DEBUG_LEVEL 			 1
+
+#DEFAULT_VOLATILE
+#ENABLE_STACK_CHECKING
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT SaveSettings;
+DIGITAL_INPUT StartupOOTBF;
+DIGITAL_INPUT StartupSystemBuilder;
+DIGITAL_INPUT StartupCustom;
+DIGITAL_INPUT RestoreDefaults;
+DIGITAL_INPUT RestoreAudioDefaults;
+DIGITAL_INPUT APADOffline[12];
+DIGITAL_INPUT KeypadOffline[12];
+STRING_INPUT ModelName$[64];
+STRING_INPUT Filename$[64];
+ANALOG_INPUT TunerFormatIn;
+ANALOG_INPUT NumberOfRoomsIn;
+ANALOG_INPUT KeypadMapIn[6];
+ANALOG_INPUT RoomBassIn[MAX_ROOMS];
+ANALOG_INPUT RoomTrebleIn[MAX_ROOMS];
+ANALOG_INPUT RoomBalanceIn[MAX_ROOMS];
+ANALOG_INPUT RoomMonoIn[MAX_ROOMS];
+ANALOG_INPUT RoomLoudnessIn[MAX_ROOMS];
+ANALOG_INPUT RoomMinVolumeIn[MAX_ROOMS];
+ANALOG_INPUT RoomMaxVolumeIn[MAX_ROOMS];
+ANALOG_INPUT RoomStartVolumeIn[MAX_ROOMS];
+ANALOG_INPUT RoomInterruptVolumeIn[MAX_ROOMS];
+ANALOG_INPUT RoomDoNotDisturbIn[MAX_ROOMS];
+ANALOG_INPUT SourceEnabledIn[MAX_SOURCES];
+ANALOG_INPUT SlotID[3];
+ANALOG_INPUT SourceTypeIn[MAX_SOURCES];
+STRING_INPUT InputRoomName$[MAX_ROOMS][32];
+STRING_INPUT InputSourceName$[MAX_SOURCES][32];
+STRING_INPUT InputGroupName$[MAX_GROUPS][32];
+// BUFFER_INPUT
+
+DIGITAL_OUTPUT FileReadDone;
+DIGITAL_OUTPUT RestoreDefaultsDone;
+DIGITAL_OUTPUT RestoreAudioDefaultsDone;
+DIGITAL_OUTPUT SystemBuilderFileReadError;
+
+ANALOG_OUTPUT TunerFormatOut;
+ANALOG_OUTPUT NumberOfRoomsOut;
+ANALOG_OUTPUT RoomBass[MAX_ROOMS];
+ANALOG_OUTPUT RoomTreble[MAX_ROOMS];
+ANALOG_OUTPUT RoomBalance[MAX_ROOMS];
+ANALOG_OUTPUT RoomMono[MAX_ROOMS];
+ANALOG_OUTPUT RoomLoudness[MAX_ROOMS];
+ANALOG_OUTPUT RoomMinVolume[MAX_ROOMS];
+ANALOG_OUTPUT RoomMaxVolume[MAX_ROOMS];
+ANALOG_OUTPUT RoomStartVolume[MAX_ROOMS];
+ANALOG_OUTPUT RoomInterruptVolume[MAX_ROOMS];
+ANALOG_OUTPUT RoomDoNotDisturb[MAX_ROOMS];
+
+ANALOG_OUTPUT SourceTypeOut[MAX_SOURCES];
+ANALOG_OUTPUT SourceGain[MAX_SOURCES];
+ANALOG_OUTPUT SourceModelID[MAX_SOURCES];
+ANALOG_OUTPUT SourceParentID[MAX_SOURCES];
+ANALOG_OUTPUT SourceNetID[MAX_SOURCES];
+ANALOG_OUTPUT SourceEnabled[MAX_SOURCES];
+
+ANALOG_OUTPUT SavedGroupSource[MAX_GROUPS];
+ANALOG_OUTPUT SavedGroupRoomsLow[MAX_GROUPS];
+ANALOG_OUTPUT SavedGroupRoomsHigh[MAX_GROUPS];
+ANALOG_OUTPUT KeypadMapOut[6];
+STRING_OUTPUT RoomName$[MAX_ROOMS];
+STRING_OUTPUT SourceName$[MAX_SOURCES];
+STRING_OUTPUT GroupName$[MAX_GROUPS];
+
+
+
+/*******************************************************************************************
+  Parameters
+  (Uncomment and declare parameters as needed)
+*******************************************************************************************/
+// INTEGER_PARAMETER
+// SIGNED_INTEGER_PARAMETER
+// LONG_INTEGER_PARAMETER
+// SIGNED_LONG_INTEGER_PARAMETER
+// STRING_PARAMETER
+
+/*******************************************************************************************
+  Parameter Properties
+  (Uncomment and declare parameter properties as needed)
+*******************************************************************************************/
+/*
+#BEGIN_PARAMETER_PROPERTIES parameter_variable, parameter_variable, ...
+   // propValidUnits = // unitString or unitDecimal|unitHex|unitPercent|unitCharacter|unitTime|unitTicks
+   // propDefaultUnit = // unitString, unitDecimal, unitHex, unitPercent, unitCharacter, unitTime or unitTicks
+   // propDefaultValue =
+   // propList = // { "value" , "label" } , { "value" , "label" } , ...
+   // propLowerBound = lower_bound
+   // propUpperBound = lower_bound
+   // propShortDescription =
+   // propFullDescription =
+   // propNotes =
+#END_PARAMETER_PROPERTIES
+*/
+
+/*******************************************************************************************
+  Global Variables
+ *******************************************************************************************/
+
+//Arrays for which rooms belong to which group
+STRING RoomID$[MAX_ROOMS][6];
+STRING ADAGIO_DATA_FILE[64];
+STRING CreatedBy$[64];
+STRING InterfaceBlock$[MAXINTERFACEBLOCKSIZE];
+STRING SourceRoomID$[MAX_SOURCES][6];
+STRING SourceCommandFile$[MAX_SOURCES][50];
+INTEGER SourceControlEntryID[MAX_SOURCES];
+INTEGER RoomOutput[MAX_ROOMS];
+INTEGER RoomSwitcher[MAX_ROOMS];
+INTEGER ReadBusy;
+INTEGER WriteBusy;
+INTEGER NeedWrite;
+INTEGER SystemType;
+
+FILE_INFO g_fiDataFile;
+
+
+/*******************************************************************************************
+  Structure Definitions
+ *******************************************************************************************/
+
+STRUCTURE Room
+{
+    //Read in from file
+    STRING Name$[32];
+    INTEGER Output;
+    INTEGER Switcher;
+    INTEGER Bass;
+    INTEGER Treble;
+    INTEGER Balance;
+    INTEGER Mono;
+    INTEGER Loud;
+    INTEGER MinVol;
+    INTEGER MaxVol;
+    INTEGER StartVol;
+    INTEGER InterruptVol;
+    INTEGER DoNotDisturb;
+    STRING ID$[6];
+};
+
+//Source Info
+STRUCTURE Source
+{
+    //Read in from file
+    STRING Name$[32];
+    INTEGER Input;
+    INTEGER Type;
+    INTEGER Gain;
+    INTEGER Visible;
+    INTEGER ModelID;
+    INTEGER ParentID;
+    INTEGER NetID;
+    STRING RoomID$[6];
+    INTEGER ControlEntryID;
+    INTEGER Enabled;
+    STRING CommandFile$[50];
+};
+
+//Group Info
+STRUCTURE Group
+{
+    STRING Name$[32];
+    INTEGER ID;
+    INTEGER Source;
+    INTEGER Rooms[MAX_ROOMS];
+};
+
+//Discovery of Devices
+STRUCTURE Device
+{
+    INTEGER IsPresent;
+    INTEGER InputStartsAt;
+};
+
+//System Wide Parameters
+STRUCTURE System
+{
+	INTEGER Location;
+	INTEGER NumRooms;
+	INTEGER KeyMap[6];
+};
+
+STRUCTURE Interface
+{
+	INTEGER NetID;
+	INTEGER LibraryID;
+	STRING Name$[32];
+	INTEGER Output;
+};
+/*******************************************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+  Note:  Be sure to initialize all declared STRING variables as needed
+         For example, in Function Main: myString = "";
+*******************************************************************************************/
+
+FUNCTION InitializeSettings()
+	{
+	INTEGER i;
+
+	for(i = 1 to MAX_ROOMS)
+		{
+		RoomBass[i] = 0;
+		RoomTreble[i] = 0;
+		RoomBalance[i] = 0;
+		RoomMinVolume[i] = 3277;
+		RoomMaxVolume[i] = 65535;
+		RoomStartVolume[i] = 19660;
+		RoomInterruptVolume[i] = 19660;
+		RoomMono[i] = 0;
+		RoomLoudness[i] = 1;
+		RoomDoNotDisturb[i] = 0;
+		Makestring(RoomName$[i], "Room %d", i);
+		Makestring(RoomId$[i], "%d", i);
+		if((i mod 6) > 0)
+			{
+			RoomOutput[i] = i mod 6;
+			RoomSwitcher[i] = i / 6 + 1;
+			}
+		else
+			{
+			RoomOutput[i] = 6;
+			RoomSwitcher[i] = i / 6;
+			}
+		}
+	}
+
+FUNCTION DefaultSettings()
+	{
+	INTEGER i;
+
+	for(i = 1 to MAX_ROOMS)
+		{
+		RoomBass[i] = 0;
+		RoomTreble[i] = 0;
+		RoomBalance[i] = 0;
+		RoomMinVolume[i] = 3277;
+		RoomMaxVolume[i] = 65535;
+		RoomStartVolume[i] = 19660;
+		RoomInterruptVolume[i] = 19660;
+		RoomMono[i] = 0;
+		RoomLoudness[i] = 1;
+		RoomDoNotDisturb[i] = 0;
+		Makestring(RoomName$[i], "Room %d", i);
+		Makestring(RoomId$[i], "%d", i);
+		if((i mod 6) > 0)
+			{
+			RoomOutput[i] = i mod 6;
+			RoomSwitcher[i] = i / 6 + 1;
+			}
+		else
+			{
+			RoomOutput[i] = 6;
+			RoomSwitcher[i] = i / 6;
+			}
+		}
+	for(i = 1 to MAX_SOURCES)
+		{
+		SourceGain[i] = 0;
+//		SourceNetID[i] = 0;
+		SourceRoomID$[i] = "0";
+		SourceControlEntryId[i] = 0;
+		SourceEnabled[i] = 1;
+		SourceCommandFile$[i] = "";
+		}
+	for(i = 1 to MAX_GROUPS)
+		{
+		SavedGroupSource[i] = 0;
+		SavedGroupRoomsLow[i] = 0;
+		SavedGroupRoomsHigh[i] = 0;
+		}
+	GroupName$[1] = "Party";
+	GroupName$[2] = "Dine";
+	GroupName$[3] = "Read";
+	GroupName$[4] = "Entertain";
+	GroupName$[5] = "Night";
+	GroupName$[6] = "Away";
+	for(i = 1 to 3)
+		{
+		if(SlotID[i] = 1)
+			{
+			Makestring(SourceName$[i * 2 - 1], "S%d AM/FM", i);
+			Makestring(SourceName$[i * 2], "S%d XM", i);
+			}
+		else if(SlotID[i] = 2)
+			{
+			Makestring(SourceName$[i * 2 - 1], "S%d AM/FM 1", i);
+			Makestring(SourceName$[i * 2], "S%d AM/FM 2", i);
+			}
+		else if(SlotID[i] = 3)
+			{
+			Makestring(SourceName$[i * 2 - 1], "S%d AM/FM", i);
+			Makestring(SourceName$[i * 2], "S%d Sirius", i);
+			}
+		else
+			{
+			Makestring(SourceName$[i * 2 - 1], "Source %d", i * 2 - 1);
+			Makestring(SourceName$[i * 2], "Source %d", i * 2);
+			}
+		}
+	for(i = 7 to 10)
+		{
+		Makestring(SourceName$[i], "Source %d", i);
+		}
+	TunerFormatOut = 0;
+	NumberOfRoomsOut = 6;
+	for(i = 1 to 6)
+		{
+		KeypadMapOut[i] = i;
+		}
+	}
+
+FUNCTION DefaultAudioSettings()
+	{
+	INTEGER i;
+
+	for(i = 1 to MAX_ROOMS)
+		{
+		RoomBass[i] = 0;
+		RoomTreble[i] = 0;
+		RoomBalance[i] = 0;
+		RoomMinVolume[i] = 3277;
+		RoomMaxVolume[i] = 65535;
+		RoomStartVolume[i] = 19660;
+		RoomInterruptVolume[i] = 19660;
+		RoomMono[i] = 0;
+		RoomLoudness[i] = 1;
+		RoomDoNotDisturb[i] = 0;
+		}
+	for(i = 1 to MAX_SOURCES)
+		{
+		SourceGain[i] = 0;
+		}
+	}
+
+/*******************************************************************************************
+  XML Functions
+*******************************************************************************************/
+
+//Functions to return information from within XML
+STRING_FUNCTION GetElementFromXML_AsString(STRING str_XMLdata, STRING str_Element)
+	{
+    INTEGER InfoStart;
+    INTEGER InfoEnd;
+    STRING str_Element_Start[25];
+    STRING str_Element_End[25];
+
+    str_Element_Start = "<" + str_Element + ">";
+    str_Element_End = "</" + str_Element + ">";
+    if((find(str_Element_Start,str_XMLdata) > 0) && (find(str_Element_End,str_XMLdata) > 0))
+    	{
+	    InfoStart = find(str_Element_Start,str_XMLdata) + len(str_Element_Start);
+	    InfoEnd = find(str_Element_End,str_XMLdata) - 1;
+	    return(mid(str_XMLdata, InfoStart, InfoEnd-InfoStart+1));
+		}
+	else
+		return("");
+	}
+
+INTEGER_FUNCTION GetElementFromXML_AsInteger(STRING str_XMLdata, STRING str_Element)
+{
+    INTEGER InfoStart;
+    INTEGER InfoEnd;
+    STRING str_Element_Start[25];
+    STRING str_Element_End[25];
+
+    str_Element_Start = "<" + str_Element + ">";
+    str_Element_End = "</" + str_Element + ">";
+    InfoStart = find(str_Element_Start,str_XMLdata) + len(str_Element_Start);
+    InfoEnd = find(str_Element_End,str_XMLdata) - 1;
+    return(atoi(mid(str_XMLdata, InfoStart, InfoEnd-InfoStart+1)));
+}
+
+/*  Cannot repeat child elements for any element (Can't have multiple bass settings for 1 room)
+    Assume that analog values will be read and written directly
+        - will not have standard SIMPL suffixes (%,d,etc.)
+        - other parts of code that use these values MUST interpret them correctly
+    Assume that there is no white space between elements in the XML file
+*/
+
+//Read room information into structure
+FUNCTION GetRoomStructureFromXML(STRING RoomDataFromFile$ , ByRef ROOM RoomToReturn)
+{
+    INTEGER RoomStart;
+    INTEGER RoomEnd;
+    STRING CurrentRoomData$[MAX_SECTION_FILE_BUFFER];
+
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  RoomDataFromFile$ After next function \n");
+        Print("  RoomDataFromFile$ = %s\n", RoomDataFromFile$);
+    #ENDIF
+    //Read info for a particular room
+    //Find where room info starts including "<Room>"
+    RoomStart = find("<Room>",RoomDataFromFile$);
+    //Find where room info ends including "</Room>"
+    RoomEnd = find("</Room>",RoomDataFromFile$) + len("</Room>") - 1;
+    //CurrentRoomData includes <Room> and </Room>
+    CurrentRoomData$ = mid(RoomDataFromFile$, RoomStart, RoomEnd-RoomStart+1);
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  CurrentRoomData = %s\n", CurrentRoomData$);
+    #ENDIF
+    //read data into a structure
+    RoomToReturn.Name$ = GetElementFromXML_AsString(CurrentRoomData$,"Name");
+    RoomToReturn.Bass = GetElementFromXML_AsInteger(CurrentRoomData$, "Bass");
+    RoomToReturn.Treble = GetElementFromXML_AsInteger(CurrentRoomData$, "Treble");
+    RoomToReturn.Balance = GetElementFromXML_AsInteger(CurrentRoomData$, "Balance");
+    RoomToReturn.Mono = GetElementFromXML_AsInteger(CurrentRoomData$, "Mono");
+    RoomToReturn.Loud = GetElementFromXML_AsInteger(CurrentRoomData$, "Loudness");
+    RoomToReturn.StartVol = GetElementFromXML_AsInteger(CurrentRoomData$, "StartupVolume");
+    RoomToReturn.MinVol = GetElementFromXML_AsInteger(CurrentRoomData$, "MinimumVolume");
+    RoomToReturn.MaxVol = GetElementFromXML_AsInteger(CurrentRoomData$, "MaximumVolume");
+    RoomToReturn.Output = GetElementFromXML_AsInteger(CurrentRoomData$, "Output");
+    RoomToReturn.Switcher = GetElementFromXML_AsInteger(CurrentRoomData$, "Switcher");
+    RoomToReturn.ID$ = GetElementFromXML_AsString(CurrentRoomData$, "ID");
+    RoomToReturn.InterruptVol = GetElementFromXML_AsInteger(CurrentRoomData$, "InterruptVolume");
+    RoomToReturn.DoNotDisturb = GetElementFromXML_AsInteger(CurrentRoomData$, "DoNotDisturb");
+    //Delete room from string
+    //Take rightmost values not included in currentroomdata$
+    RoomDataFromFile$ = right(RoomDataFromFile$, len(RoomDataFromFile$) - len(CurrentRoomData$));
+    #IF_DEFINED DEBUG_LEVEL
+        Print("  Length of RoomDataFromFile$ = %d\n", len(RoomDataFromFile$));
+    #ENDIF
+}
+
+//Read source information into structure
+FUNCTION GetSourceStructureFromXML(STRING SourceDataFromFile$ , ByRef Source SourceToReturn)
+{
+    INTEGER SourceStart;
+    INTEGER SourceEnd;
+    STRING CurrentSourceData$[MAX_SECTION_FILE_BUFFER];
+
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  SourceDataFromFile$ After next function \n");
+        Print("  SourceDataFromFile$ = %s\n", SourceDataFromFile$);
+    #ENDIF
+    //Read info for a particular source
+    //Find where source info starts including "<Source>"
+    SourceStart = find("<Source>",SourceDataFromFile$);
+    //Find where source info ends including "</Source>"
+    SourceEnd = find("</Source>",SourceDataFromFile$) + len("</Source>") - 1;
+    //CurrentSourceData includes <Source> and </Source>
+    CurrentSourceData$ = mid(SourceDataFromFile$, SourceStart, SourceEnd-SourceStart+1);
+
+//  #IF_DEFINED DEBUG_LEVEL_2
+//      Print("\n  CurrentSourceData = %s\n", CurrentSourceData$);
+//  #ENDIF
+
+    //read data into a structure
+    SourceToReturn.Name$      = GetElementFromXML_AsString (CurrentSourceData$,"Name");
+    SourceToReturn.Type       = GetElementFromXML_AsInteger(CurrentSourceData$, "SourceType");
+    SourceToReturn.Gain       = GetElementFromXML_AsInteger(CurrentSourceData$, "Gain");
+    SourceToReturn.Input      = GetElementFromXML_AsInteger(CurrentSourceData$, "Input");
+    SourceToReturn.Visible    = GetElementFromXML_AsInteger(CurrentSourceData$, "Visible");
+    SourceToReturn.ModelID    = GetElementFromXML_AsInteger(CurrentSourceData$, "ModelID");
+    SourceToReturn.ParentID   = GetElementFromXML_AsInteger(CurrentSourceData$, "ParentID");
+    SourceToReturn.NetID      = GetElementFromXML_AsInteger(CurrentSourceData$, "NetID");
+    SourceToReturn.RoomID$    = GetElementFromXML_AsSTRING(CurrentSourceData$, "RoomID");
+    SourceToReturn.ControlEntryID = GetElementFromXML_AsInteger(CurrentSourceData$, "ControlEntryID");
+    SourceToReturn.Enabled    = GetElementFromXML_AsInteger(CurrentSourceData$, "Enabled");
+    SourceToReturn.CommandFile$ = GetElementFromXML_AsString (CurrentSourceData$,"CommandFile");
+    //Delete source from string
+    //Take rightmost values not included in currentsourcedata$
+    SourceDataFromFile$ = right(SourceDataFromFile$, len(SourceDataFromFile$) - len(CurrentSourceData$));
+    #IF_DEFINED DEBUG_LEVEL
+        Print("  Length of SourceDataFromFile$ = %d\n", len(SourceDataFromFile$));
+    #ENDIF
+}
+
+//Read group room information into structure
+INTEGER_FUNCTION GetSystemKeymapFromXML (STRING SystemKeymapDataFromFile$)
+{
+    INTEGER SystemKeymapStart;
+    INTEGER SystemKeymapEnd;
+    STRING CurrentSystemKeymapData$[MAX_SECTION_FILE_BUFFER];
+
+    /*
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  GroupRoomDataFromFile$ After next function \n");
+        Print("  GroupRoomDataFromFile$ = %s\n", GroupRoomDataFromFile$);
+    #ENDIF
+    */
+    //Find where room info starts including "<RoomOutput>"
+    SystemKeymapStart = find("<Button>",SystemKeymapDataFromFile$);
+    //Find where room info ends including "</RoomOutput>"
+    SystemKeymapEnd = find("</Button>",SystemKeymapDataFromFile$) + len("</Button>") - 1;
+    //CurrentGroupRoomData includes <RoomOutput> and </RoomOutput>
+    CurrentSystemKeymapData$ = mid(SystemKeymapDataFromFile$, SystemKeymapStart, SystemKeymapEnd-SystemKeymapStart+1);
+    /*
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  CurrentGroupRoomData = %s\n", CurrentGroupRoomData$);
+    #ENDIF
+    */
+    //Delete room from string
+    //Take rightmost values not included in CurrentGroupRoomData
+    SystemKeymapDataFromFile$ = right(SystemKeymapDataFromFile$, len(SystemKeymapDataFromFile$) - len(CurrentSystemKeymapData$));
+    /*
+    #IF_DEFINED DEBUG_LEVEL
+        Print("  Length of GroupRoomDataFromFile$ = %d\n", len(GroupRoomDataFromFile$));
+    #ENDIF
+    */
+    //send current room to group function
+    return(GetElementFromXML_AsInteger(CurrentSystemKeymapData$, "Button"));
+}
+
+
+//Read system information into structure
+FUNCTION GetSystemStructureFromXML(STRING SystemDataFromFile$ , ByRef System SystemToReturn)
+{
+    INTEGER SystemStart;
+    INTEGER SystemEnd;
+    INTEGER i;
+//    STRING CurrentSystemData$[MAX_SECTION_FILE_BUFFER];
+    STRING SystemKeymapDataFromFile$[1000];
+
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  SystemDataFromFile$ After next function \n");
+        Print("  SystemDataFromFile$ = %s\n", SystemDataFromFile$);
+    #ENDIF
+    //Read info for a particular source
+    //Find where source info starts including "<Source>"
+//    SystemStart = find("<System>",SystemDataFromFile$);
+    //Find where source info ends including "</Source>"
+//    SystemEnd = find("</System>",SystemDataFromFile$) + len("</System>") - 1;
+    //CurrentSourceData includes <Source> and </Source>
+//    CurrentSystemData$ = mid(SystemDataFromFile$, SystemStart, SystemEnd-SystemStart+1);
+//    print("Start = %d, End = %d, Data = %s\n", SystemStart, SystemEnd, CurrentSystemData$);
+
+//  #IF_DEFINED DEBUG_LEVEL_2
+//      Print("\n  CurrentSourceData = %s\n", CurrentSourceData$);
+//  #ENDIF
+
+    //read data into a structure
+    SystemToReturn.Location  = GetElementFromXML_AsInteger (SystemDataFromFile$,"Region");
+    SystemToReturn.NumRooms   = GetElementFromXML_AsInteger(SystemDataFromFile$, "NumberOfRooms");
+    SystemKeymapDataFromFile$ = GetElementFromXML_AsString(SystemDataFromFile$, "Buttons");
+    i = 1;
+    while((len(SystemKeymapDataFromFile$) > 0) && (i <= 6))
+    {
+        //Read in rooms for group one by one
+        SystemToReturn.Keymap[i] = GetSystemKeymapFromXML(SystemKeymapDataFromFile$);
+        i = i + 1;
+    }
+}
+
+
+//Read group room information into structure
+INTEGER_FUNCTION GetGroupRoomsFromXML (STRING GroupRoomDataFromFile$)
+	{
+    INTEGER GroupRoomStart;
+    INTEGER GroupRoomEnd;
+    STRING CurrentGroupRoomData$[MAX_SECTION_FILE_BUFFER];
+
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  GroupRoomDataFromFile$ After next function \n");
+        Print("  GroupRoomDataFromFile$ = %s\n", GroupRoomDataFromFile$);
+    #ENDIF
+    GroupRoomStart = find("<RoomOutput>",GroupRoomDataFromFile$);
+    GroupRoomEnd = find("</RoomOutput>",GroupRoomDataFromFile$) + len("</RoomOutput>") - 1;
+    CurrentGroupRoomData$ = mid(GroupRoomDataFromFile$, GroupRoomStart, GroupRoomEnd-GroupRoomStart+1);
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  CurrentGroupRoomData = %s\n", CurrentGroupRoomData$);
+    #ENDIF
+    GroupRoomDataFromFile$ = right(GroupRoomDataFromFile$, len(GroupRoomDataFromFile$) - len(CurrentGroupRoomData$));
+    #IF_DEFINED DEBUG_LEVEL
+        Print("  Length of GroupRoomDataFromFile$ = %d\n", len(GroupRoomDataFromFile$));
+    #ENDIF
+    return(GetElementFromXML_AsInteger(CurrentGroupRoomData$, "RoomOutput"));
+	}
+
+//Read group information into structure
+FUNCTION GetGroupStructureFromXML (STRING GroupDataFromFile$ , ByRef Group GroupToReturn)
+	{
+    INTEGER GroupStart;
+    INTEGER GroupEnd;
+    INTEGER i;
+    STRING CurrentGroupData$[MAX_SECTION_FILE_BUFFER];
+    STRING GroupRoomDataFromFile$[1000];
+
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  GroupDataFromFile$ After next function \n");
+        Print("  GroupDataFromFile$ = %s\n", GroupDataFromFile$);
+    #ENDIF
+    GroupStart = find("<Group>",GroupDataFromFile$);
+    GroupEnd = find("</Group>",GroupDataFromFile$) + len("</Group>") - 1;
+    CurrentGroupData$ = mid(GroupDataFromFile$, GroupStart, GroupEnd-GroupStart+1);
+    #IF_DEFINED DEBUG_LEVEL
+        Print("\n  CurrentGroupData = %s\n", CurrentGroupData$);
+    #ENDIF
+    GroupToReturn.Name$ = GetElementFromXML_AsString(CurrentGroupData$,"Name");
+    GroupToReturn.ID = GetElementFromXML_AsInteger(CurrentGroupData$, "ID");
+    GroupToReturn.Source = GetElementFromXML_AsInteger(CurrentGroupData$, "Source");
+    GroupRoomDataFromFile$ = GetElementFromXML_AsString(CurrentGroupData$, "Rooms");
+    for(i = 1 to MAX_ROOMS)
+	    {
+        GroupToReturn.Rooms[i] = 0;
+	    }
+    i = 1;
+    while(len(GroupRoomDataFromFile$) > 0)
+ 	   {
+        GroupToReturn.Rooms[i] = GetGroupRoomsFromXML(GroupRoomDataFromFile$);
+        i = i + 1;
+	    }
+    GroupDataFromFile$ = right(GroupDataFromFile$, len(GroupDataFromFile$) - len(CurrentGroupData$));
+    #IF_DEFINED DEBUG_LEVEL
+        Print("  Length of GroupDataFromFile$ = %d\n", len(GroupDataFromFile$));
+    #ENDIF
+	}
+
+//Function to open and read all information from XML file
+INTEGER_FUNCTION ReadXMLFile(STRING FileData$)
+	{
+    SIGNED_INTEGER nFileHandle;
+    SIGNED_INTEGER Return_Handle;
+
+    StartFileOperations();
+    if(FindFirst(ADAGIO_DATA_FILE, g_fiDataFile) <> 0)
+	    {
+        print("ERROR: Could not find file %s\n", ADAGIO_DATA_FILE);
+        FindClose();
+        EndFileOperations();
+        return(-1);
+    	}
+    FindClose();
+    nFileHandle = FileOpen(ADAGIO_DATA_FILE, _O_RDONLY | _O_TEXT);
+    Return_Handle = nFileHandle;
+    FileRead(nFileHandle, FileData$, MAX_FILE_BUFFER);
+    if (FileClose(nFileHandle) <> 0)
+        PRINT("  Error Closing File %s\n", ADAGIO_DATA_FILE);
+    EndFileOperations();
+    return(Return_Handle);
+	}
+
+
+//Call different functions to read information
+FUNCTION GetStructureFromXML(STRING FileData$)
+	{
+    Room TempRoom;
+    Source TempSource;
+    Group TempGroup;
+    System TempSystem;
+//    SIGNED_INTEGER nFileHandle;
+//    STRING FileData$[MAX_FILE_BUFFER];
+	STRING HeaderDataFromFile$[MAX_SECTION_FILE_BUFFER];
+    STRING RoomDataFromFile$[MAX_SECTION_FILE_BUFFER];
+    STRING SourceDataFromFile$[MAX_SECTION_FILE_BUFFER];
+    STRING GroupDataFromFile$[MAX_SECTION_FILE_BUFFER];
+    STRING SystemDataFromFile$[MAX_SECTION_FILE_BUFFER];
+    INTEGER i;
+    INTEGER Mask;
+    INTEGER RoomMapLow;
+    INTEGER RoomMapHigh;
+    INTEGER Counter;
+
+	HeaderDataFromFile$ = GetElementFromXML_AsString(FileData$, "Header");
+	CreatedBy$ = GetElementFromXML_AsString(HeaderDataFromFile$, "CreatedBy");
+    SystemDataFromFile$ = GetElementFromXML_AsString(FileData$, "System");
+    call GetSystemStructureFromXML(SystemDataFromFile$, TempSystem);
+    TunerFormatOut = TempSystem.Location;
+    NumberOfRoomsOut = TempSystem.NumRooms;
+    for(i = 1 to 6)
+        {
+      	KeypadMapOut[i] = TempSystem.Keymap[i];
+   	    }
+    RoomDataFromFile$ = GetElementFromXML_AsString(FileData$, "Rooms");
+    Counter = 1;
+    while((len(RoomDataFromFile$) > 0) && (Counter <= MAX_ROOMS))
+        {
+      	call GetRoomStructureFromXML(RoomDataFromFile$, TempRoom);
+        RoomName$[Counter] = TempRoom.Name$;
+        RoomID$[Counter] = TempRoom.ID$;
+        RoomBass[Counter] = TempRoom.Bass;
+        RoomTreble[Counter] = TempRoom.Treble;
+        RoomBalance[Counter] = TempRoom.Balance;
+        RoomMono[Counter] = TempRoom.Mono;
+        RoomLoudness[Counter] = TempRoom.Loud;
+        RoomMinVolume[Counter] = TempRoom.MinVol;
+        RoomMaxVolume[Counter] = TempRoom.MaxVol;
+        RoomStartVolume[Counter] = TempRoom.StartVol;
+        RoomOutput[Counter] = TempRoom.Output;
+        RoomSwitcher[Counter] = TempRoom.Switcher;
+        RoomInterruptVolume[Counter] = TempRoom.InterruptVol;
+        RoomDoNotDisturb[Counter] = TempRoom.DoNotDisturb;
+        #IF_DEFINED DEBUG_LEVEL
+            PRINT("\n  RoomName = %s\n", TempRoom.Name$);
+            PRINT("  RoomBass = %d\n", TempRoom.Bass);
+            PRINT("  RoomTreble = %d\n", TempRoom.Treble);
+            PRINT("  RoomBalance = %d\n", TempRoom.Balance);
+            PRINT("  RoomMono = %d\n", TempRoom.Mono);
+            PRINT("  RoomLoudness = %d\n", TempRoom.Loud);
+            PRINT("  RoomMinVol = %d\n", TempRoom.MinVol);
+            PRINT("  RoomMaxVol = %d\n", TempRoom.MaxVol);
+            PRINT("  RoomStrtVol = %d\n", TempRoom.StartVol);
+            PRINT("  RoomInterruptVol = %d\n", TempRoom.InterruptVol);
+        	PRINT("  RoomDoNotDisturb = %d\n", TempRoom.DoNotDisturb);
+           #ENDIF
+        Counter = Counter + 1;
+        }
+    SourceDataFromFile$ = GetElementFromXML_AsString(FileData$, "Sources");
+    while(len(SourceDataFromFile$) > 0)
+        {
+        call GetSourceStructureFromXML(SourceDataFromFile$, TempSource);
+        if(TempSource.Input <= MAX_SOURCES)
+            {
+            SourceName$[TempSource.Input] = TempSource.Name$;
+            SourceTypeOut[TempSource.Input] = TempSource.Type;
+            SourceGain[TempSource.Input] = TempSource.Gain;
+            SourceModelID[TempSource.Input] = TempSource.ModelID;
+            SourceParentID[TempSource.Input] = TempSource.ParentID;
+            SourceNetID[TempSource.Input] = TempSource.NetID;
+            SourceRoomID$[TempSource.Input] = TempSource.RoomID$;
+            SourceEnabled[TempSource.Input] = TempSource.Enabled;
+            SourceControlEntryID[TempSource.Input] = TempSource.ControlEntryID;
+            SourceCommandFile$[TempSource.Input] = TempSource.CommandFile$;
+            }
+   	    }
+    GroupDataFromFile$ = GetElementFromXML_AsString(FileData$, "Groups");
+    while(len(GroupDataFromFile$) > 0)
+        {
+        call GetGroupStructureFromXML(GroupDataFromFile$, TempGroup);
+        if((TempGroup.ID <= MAX_GROUPS) && (TempGroup.ID > 0))
+            {
+            GroupName$[TempGroup.ID] = TempGroup.Name$;
+            SavedGroupSource[TempGroup.ID] = TempGroup.Source;
+			RoomMapLow = 0;
+			RoomMapHigh = 0;
+			for(i = 1 to MAX_ROOMS)
+				{
+				if(TempGroup.Rooms[i] <> 0)
+					{
+					if(TempGroup.Rooms[i] <= 12)
+						RoomMapLow = RoomMapLow | (0x0001 << (TempGroup.Rooms[i] - 1));
+					else
+						RoomMapHigh = RoomMapHigh | (0x0001 << (TempGroup.Rooms[i] - 13));
+					}
+				}
+            SavedGroupRoomsLow[TempGroup.ID] = RoomMapLow;
+            SavedGroupRoomsHigh[TempGroup.ID] = RoomMapHigh;
+            #IF_DEFINED DEBUG_LEVEL
+                PRINT("\n  GroupID = %d\n", TempGroup.ID);
+                PRINT("  GroupName = %s\n", TempGroup.Name$);
+                PRINT("  GroupSource = %d\n", TempGroup.Source);
+                for(i=1 to MAX_ROOMS)
+                    {
+                    if(TempGroup.Rooms[i] <> 0)
+                        PRINT("  GroupRoom = %d\n", TempGroup.Rooms[i]);
+                    }
+            #ENDIF
+            }
+        }
+	InterfaceBlock$ = left(GetElementFromXML_AsString(FileData$, "Interfaces"), MAXINTERFACEBLOCKSIZE);
+    if(len(InterfaceBlock$) >= MAXINTERFACEBLOCKSIZE)
+    	InterfaceBlock$ = "";
+	}
+
+//Functions to Write Information to XML file
+
+//Function to open and write all information to XML file
+FUNCTION WriteXMLFile(STRING str_filename, STRING str_WriteInfo)
+{
+    SIGNED_INTEGER nFileHandle;
+
+    //Open File for all information
+    StartFileOperations();
+    nFileHandle = FileOpen(str_filename,_O_RDWR | _O_CREAT | _O_TRUNC | _O_TEXT);
+    //Debug to see if file opened
+    #IF_DEFINED DEBUG_LEVEL
+    if (nFileHandle < 0)
+    {
+        PRINT("  Error Opening File SystemInfo\n");
+    }
+    #ENDIF
+    FileWrite(nFileHandle, str_WriteInfo, len(str_WriteInfo));
+    if (fileclose(nFileHandle) <> 0)
+    {
+        PRINT("  Error Closing File SystemInfo\n");
+    }
+
+	if (FindFirst(ADAGIO_DATA_FILE, g_fiDataFile) <> 0)
+    {
+       print("ERROR: Could not find file %s\n", ADAGIO_DATA_FILE);
+       // pulse(50, Read_Error); - could put this back in later [MC - 03/21/2006]
+       FindClose();
+       EndFileOperations();
+       return;
+    }
+
+    FindClose();
+    EndFileOperations();
+}
+
+
+//Functions to add a tag to information before they are written to xml file
+STRING_FUNCTION AddXMLTag_toString(STRING str_Info, STRING str_tag)
+{
+    STRING Info_withTag[MAX_FILE_BUFFER];
+
+    Makestring(Info_WithTag,"<%s>%s</%s>", str_tag, str_Info, str_tag);
+    return(Info_WithTag);
+}
+
+STRING_FUNCTION AddXMLTag_toInteger(INTEGER Info, STRING str_tag)
+{
+    STRING str_Info[100];
+    STRING Info_withTag[100];
+
+    str_Info = itoa(Info);
+    Makestring(Info_WithTag,"<%s>%s</%s>", str_tag, str_Info, str_tag);
+    return(Info_WithTag);
+}
+
+//Create the time stamp
+STRING_FUNCTION CreateStringForTimeStamp()
+{
+    INTEGER Hour;
+    STRING AMPM$[2];
+    STRING Date$[32];
+    STRING Time$[32];
+    STRING TimeStamp_NoTag$[64];
+
+    //Produce Date
+    MakeString(Date$,"%d/%d/%d", GetMonthNum(),GetDateNum(),GetYearNum());
+    if(GetHourNum() <= 12)
+    {
+        Hour = GetHourNum();
+        AMPM$ = "AM";
+    }
+    else if(GetHourNum() > 12)
+    {
+        Hour = GetHourNum()-12;
+        AMPM$ = "PM";
+    }
+    //Produce Time
+    MakeString(Time$,"%d:%02d %s", Hour, GetMinutesNum(), AMPM$);
+    //Produce Time Stamp
+    MakeString(TimeStamp_NoTag$,"%s %s", Date$, Time$);
+    return(AddXMLTag_toString(TimeStamp_NoTag$,"TimeStamp"));
+}
+
+//Create header for file
+STRING_FUNCTION CreateStringForHeader()
+{
+    STRING Model$[64];
+    STRING CreatedByTag$[128];
+    STRING SavedBy_NoTag$[32];
+    STRING SavedBy$[64];
+    STRING TimeStamp$[64];
+    STRING Header_NoTag$[MAX_SECTION_FILE_BUFFER];
+
+    SavedBy_NoTag$ = "Front Panel";
+    Model$ = ModelName$;
+    Model$ = AddXMLTag_toString(Model$,"Model");
+    CreatedByTag$ = AddXMLTag_toString(CreatedBy$,"CreatedBy");
+    SavedBy$ = AddXMLTag_toString(SavedBy_NoTag$,"SavedBy");
+    TimeStamp$ = CreateStringForTimeStamp();
+    MakeString(Header_NoTag$,"%s%s%s%s", Model$, CreatedByTag$, SavedBy$, TimeStamp$);
+    return(AddXMLTag_toString(Header_NoTag$,"Header"));
+}
+
+//Create string for room information
+STRING_FUNCTION CreateStringForRoomInformation()
+{
+    INTEGER i;
+    STRING CurrentRoomName$[60];
+    STRING Name$[60];
+    STRING Bass$[60];
+    STRING Treble$[60];
+    STRING Balance$[60];
+    STRING Mono$[60];
+    STRING Loudness$[60];
+    STRING StartVol$[60];
+    STRING MinVol$[60];
+    STRING MaxVol$[60];
+    STRING Output$[60];
+    STRING Switcher$[60];
+    STRING ID$[60];
+    STRING InterruptVol$[60];
+    STRING DoNotDisturb$[60];
+    STRING RoomData_NoTag$[MAX_SECTION_FILE_BUFFER];
+    STRING CurrentRoomData$[MAX_SECTION_FILE_BUFFER];
+    STRING TotalRoomData_NoTag$[MAX_SECTION_FILE_BUFFER];
+
+    //Initialize strings
+    TotalRoomData_NoTag$ = "";
+//    for(i=1 to MAX_ROOMS)
+	for(i = 1 to NumberOfRoomsIn)
+    {
+        //Add tags to individual room data
+        //Save RoomName in separate string because you can't pass an i/o byref
+        CurrentRoomName$ = InputRoomName$[i];
+        Name$ = AddXMLTag_toString(CurrentRoomName$,"Name");
+        Bass$ = AddXMLTag_toInteger(RoomBassIn[i],"Bass");
+        Treble$ = AddXMLTag_toInteger(RoomTrebleIn[i],"Treble");
+        Balance$ = AddXMLTag_toInteger(RoomBalanceIn[i],"Balance");
+        Mono$ = AddXMLTag_toInteger(RoomMonoIn[i],"Mono");
+        Loudness$ = AddXMLTag_toInteger(RoomLoudnessIn[i],"Loudness");
+        StartVol$ = AddXMLTag_toInteger(RoomStartVolumeIn[i],"StartupVolume");
+        MinVol$ = AddXMLTag_toInteger(RoomMinVolumeIn[i],"MinimumVolume");
+        MaxVol$ = AddXMLTag_toInteger(RoomMaxVolumeIn[i],"MaximumVolume");
+        Output$ = AddXMLTag_toInteger(RoomOutput[i],"Output");
+        Switcher$ = AddXMLTag_toInteger(RoomSwitcher[i],"Switcher");
+        ID$ = AddXMLTag_toString(RoomID$[i],"ID");
+        InterruptVol$ = AddXMLTag_toInteger(RoomInterruptVolumeIn[i],"InterruptVolume");
+        DoNotDisturb$ = AddXMLTag_toInteger(RoomDoNotDisturbIn[i],"DoNotDisturb");
+        //Combine data for current room
+        MakeString(RoomData_NoTag$,"%s%s%s%s%s%s%s%s%s%s%s%s%s%s",Name$,ID$,Bass$,Treble$,Balance$,Mono$,Loudness$,DoNotDisturb$,StartVol$,MinVol$,MaxVol$,InterruptVol$,Output$,Switcher$);
+        //Add tag to all current room data
+        CurrentRoomData$ = AddXMLTag_toString(RoomData_NoTag$,"Room");
+        //Add current room data to all rooms
+        MakeString(TotalRoomData_NoTag$,"%s%s",TotalRoomData_NoTag$,CurrentRoomData$);
+    }
+    return(AddXMLTag_toString(TotalRoomData_NoTag$,"Rooms"));
+}
+
+STRING_FUNCTION CreateStringForSystemInformation()
+{
+    INTEGER i;
+    STRING Region$[60];
+    STRING NumberOfRooms$[60];
+    STRING Keymap$[60];
+    STRING KeymapData$[2000];
+    STRING KeymapData_NoTag$[2000];
+    STRING TotalSystemData_NoTag$[MAX_SECTION_FILE_BUFFER];
+
+    //Initialize strings
+    TotalSystemData_NoTag$ = "";
+    Region$ = AddXMLTag_toInteger(TunerFormatIn,"Region");
+    NumberOfRooms$ = AddXMLTag_toInteger(NumberOfRoomsIn,"NumberOfRooms");
+    KeymapData_NoTag$ = "";
+    for(i = 1 to 6)
+    	{
+    	Keymap$ = AddXMLTag_toInteger(KeypadMapIn[i],"Button");
+        MakeString(KeymapData_NoTag$,"%s%s",KeymapData_NoTag$,Keymap$);
+        }
+    KeymapData$ = AddXMLTag_toString(KeymapData_NoTag$,"Buttons");
+    Makestring(TotalSystemData_NoTag$, "%s%s%s", Region$, NumberOfRooms$, KeymapData$);
+    return(AddXMLTag_toString(TotalSystemData_NoTag$,"System"));
+    }
+
+//Create string for source information
+STRING_FUNCTION CreateStringForSourceInformation()
+{
+    INTEGER i;
+    STRING CurrentSourceName$[60];
+    STRING Name$[60];
+    STRING Input$[60];
+    STRING Type$[60];
+    STRING Gain$[60];
+    STRING Visible$[60];
+    STRING ModelID$[60];
+    STRING ParentID$[60];
+    STRING NetID$[60];
+    STRING RoomID$[60];
+    STRING Enabled$[60];
+    STRING ControlEntryID$[60];
+    STRING CommandFile$[120];
+    STRING SourceData_NoTag$[MAX_SECTION_FILE_BUFFER];
+    STRING CurrentSourceData$[MAX_SECTION_FILE_BUFFER];
+    STRING TotalSourceData_NoTag$[MAX_SECTION_FILE_BUFFER];
+
+
+    //Initialize strings
+    TotalSourceData_NoTag$ = "";
+    for(i=1 to MAX_SOURCES)
+    {
+
+/*#if_defined DEBUG_LEVEL_2
+    print ("  CreateStringForSourceInformation: SourceType(%d)=%d\n", i, SourceType[i]);
+#endif
+*/
+
+        //Add tags to individual source data
+        //Save SourceName in separate string because you can't pass an i/o byref
+        CurrentSourceName$ = InputSourceName$[i];
+        Name$ = AddXMLTag_toString(CurrentSourceName$,"Name");
+        Input$ = AddXMLTag_toInteger(i,"Input");
+        Type$ = AddXMLTag_toInteger(SourceTypeIn[i],"SourceType");
+        Gain$ = AddXMLTag_toInteger(SourceGain[i],"Gain");
+        ModelID$ = AddXMLTag_toInteger(SourceModelID[i],"ModelID");
+        ParentID$ = AddXMLTag_toInteger(SourceParentID[i],"ParentID");
+        NetID$ = AddXMLTag_toInteger(SourceNetID[i],"NetID");
+        RoomID$ = AddXMLTag_toString(SourceRoomID$[i],"RoomID");
+        ControlEntryID$ = AddXMLTag_toInteger(SourceControlEntryID[i],"ControlEntryID");
+        Enabled$ = AddXMLTag_toInteger(SourceEnabledIn[i],"Enabled");
+        CommandFile$ = AddXMLTag_toString(SourceCommandFile$[i],"CommandFile");
+        // Visible$ = AddXMLTag_toInteger(SourceVisible[i],"Visible"); - not used [MC - 03/21/2006]
+        //Combine data for current source
+        MakeString(SourceData_NoTag$,"%s%s%s%s%s%s%s%s%s%s%s%s",Name$,Input$,Type$,Gain$,Visible$,ModelID$,ParentID$,NetID$,RoomID$,ControlEntryID$,Enabled$, CommandFile$);
+        //Add tag to all current source data
+        CurrentSourceData$ = AddXMLTag_toString(SourceData_NoTag$,"Source");
+        //Add current source data to all sources
+        MakeString(TotalSourceData_NoTag$,"%s%s",TotalSourceData_NoTag$,CurrentSourceData$);
+    }
+    return(AddXMLTag_toString(TotalSourceData_NoTag$,"Sources"));
+}
+
+STRING_FUNCTION CreateStringForInterfaceInformation()
+{
+    INTEGER i;
+    STRING TempName$[24];
+    STRING NetId$[60];
+    STRING LibraryId$[60];
+    STRING Name$[60];
+    STRING Output$[60];
+    STRING InterfaceData_NoTag$[MAX_SECTION_FILE_BUFFER];
+    STRING CurrentInterfaceData$[MAX_SECTION_FILE_BUFFER];
+    STRING TotalInterfaceData_NoTag$[MAX_SECTION_FILE_BUFFER];
+
+
+    //Initialize strings
+    TotalInterfaceData_NoTag$ = "";
+    for(i=1 to 12)
+    {
+        if(APADOffline[i] = 0)
+        {
+        	NetId$ = AddXMLTag_toInteger(i + 3,"NetID");
+        	LibraryId$ = AddXMLTag_toInteger(154,"LibraryID");
+        	Output$ = AddXMLTag_toInteger(i,"Output");
+        	Makestring(TempName$, "Room %d APAD", i);
+        	Name$ = AddXMLTag_toString(TempName$,"Name");
+        	MakeString(InterfaceData_NoTag$,"%s%s%s%s",Name$,NetId$,LibraryId$,Output$);
+        	CurrentInterfaceData$ = AddXMLTag_toString(InterfaceData_NoTag$,"Interface");
+        	MakeString(TotalInterfaceData_NoTag$,"%s%s",TotalInterfaceData_NoTag$,CurrentInterfaceData$);
+        }
+    }
+    for(i = 1 to 12)
+    {
+        if(KeypadOffline[i] = 0)
+        {
+        	NetId$ = AddXMLTag_toInteger(i + 112,"NetID");
+        	LibraryId$ = AddXMLTag_toInteger(58,"LibraryID");
+        	Output$ = AddXMLTag_toInteger(i,"Output");
+        	Makestring(TempName$, "Room %d Keypad", i);
+        	Name$ = AddXMLTag_toString(TempName$,"Name");
+        	MakeString(InterfaceData_NoTag$,"%s%s%s%s",Name$,NetId$,LibraryId$,Output$);
+        	CurrentInterfaceData$ = AddXMLTag_toString(InterfaceData_NoTag$,"Interface");
+        	MakeString(TotalInterfaceData_NoTag$,"%s%s",TotalInterfaceData_NoTag$,CurrentInterfaceData$);
+        }
+    }
+    return(AddXMLTag_toString(TotalInterfaceData_NoTag$,"Interfaces"));
+}
+
+//Create string for group information
+STRING_FUNCTION CreateStringForGroupInformation()
+	{
+    INTEGER i;
+    INTEGER j;
+    INTEGER Mask;
+    STRING CurrentGroupName$[60];
+    STRING Name$[60];
+    STRING ID$[60];
+    STRING Source$[60];
+    STRING Room$[60];
+    STRING RoomData_NoTag$[2000];
+    STRING RoomData$[2000];
+    STRING GroupData_NoTag$[MAX_SECTION_FILE_BUFFER];
+    STRING CurrentGroupData$[MAX_SECTION_FILE_BUFFER];
+    STRING TotalGroupData_NoTag$[MAX_SECTION_FILE_BUFFER];
+
+    TotalGroupData_NoTag$ = "";
+    for(i = 1 to MAX_GROUPS)
+	    {
+        CurrentGroupName$ = InputGroupName$[i];
+        Name$ = AddXMLTag_toString(CurrentGroupName$,"Name");
+        ID$ = AddXMLTag_toInteger(i,"ID");
+        Source$ = AddXMLTag_toInteger(SavedGroupSource[i],"Source");
+        RoomData_NoTag$ = "";
+        Mask = 0x0001;
+        for(j = 1 to 12)
+        	{
+        	if((SavedGroupRoomsLow[i] & Mask) > 0)
+        		{
+        		Room$ = AddXMLTag_toInteger(j,"RoomOutput");
+            	MakeString(RoomData_NoTag$,"%s%s",RoomData_NoTag$,Room$);
+            	}
+            Mask = Mask << 1;
+            }
+        Mask = 0x0001;
+        for(j = 1 to 12)
+        	{
+        	if((SavedGroupRoomsHigh[i] & Mask) > 0)
+        		{
+        		Room$ = AddXMLTag_toInteger(j + 12,"RoomOutput");
+            	MakeString(RoomData_NoTag$,"%s%s",RoomData_NoTag$,Room$);
+            	}
+            Mask = Mask << 1;
+            }
+        RoomData$ = AddXMLTag_toString(RoomData_NoTag$,"Rooms");
+        MakeString(GroupData_NoTag$,"%s%s%s%s",Name$,ID$,Source$,RoomData$);
+        CurrentGroupData$ = AddXMLTag_toString(GroupData_NoTag$,"Group");
+        MakeString(TotalGroupData_NoTag$,"%s%s",TotalGroupData_NoTag$,CurrentGroupData$);
+	    }
+    return(AddXMLTag_toString(TotalGroupData_NoTag$,"Groups"));
+	}
+
+//Function to write all information to XML file
+FUNCTION SaveDatatoXMLFile()
+{
+    INTEGER FileDataEnd;
+    STRING Header$[MAX_SECTION_FILE_BUFFER];
+    STRING RoomData$[MAX_SECTION_FILE_BUFFER];
+    STRING SystemData$[MAX_SECTION_FILE_BUFFER];
+    STRING SourceData$[MAX_SECTION_FILE_BUFFER];
+    STRING GroupData$[MAX_SECTION_FILE_BUFFER];
+    STRING FileData_NoTag$[MAX_FILE_BUFFER];
+    STRING FileData$[MAX_FILE_BUFFER];
+    STRING InterfaceData$[MAX_FILE_BUFFER];
+
+    Header$ = CreateStringForHeader();
+    SystemData$ = CreateStringForSystemInformation();
+    RoomData$ = CreateStringForRoomInformation();
+    SourceData$ = CreateStringForSourceInformation();
+    GroupData$ = CreateStringForGroupInformation();
+    if(SystemType = SYSTEMTYPE_OOTBF)
+    	InterfaceData$ = CreateStringForInterfaceInformation();
+    else if(SystemType = SYSTEMTYPE_CUSTOM)
+    	InterfaceData$ = "";
+    else if(SystemType = SYSTEMTYPE_SYSTEMBUILDER)
+    	InterfaceData$ = AddXMLTag_toString(InterfaceBlock$, "Interfaces");
+    MakeString(FileData_NoTag$,"%s%s%s%s%s%s",Header$,SystemData$,RoomData$,SourceData$,GroupData$,InterfaceData$);
+    //Combine all data into one string
+    FileData$ = AddXMLTag_toString(FileData_NoTag$,"SystemInfo");
+    //Write to File
+    call WriteXMLFile(ADAGIO_DATA_FILE, FileData$);
+}
+
+/*******************************************************************************************
+  Event Handlers
+  (Uncomment and declare additional event handlers as needed)
+*******************************************************************************************/
+
+PUSH SaveSettings
+	{
+	NeedWrite = 1;
+	if(WriteBusy = 0)
+		{
+		while(NeedWrite = 1)
+			{
+    		WriteBusy = 1;
+    		NeedWrite = 0;
+    		Call SaveDatatoXMLFile();
+    		WriteBusy = 0;
+			}
+		}
+	}
+
+PUSH StartupOOTBF
+	{
+	SIGNED_INTEGER nFileHandle;
+	STRING FileData$[MAX_FILE_BUFFER];
+
+	SystemType = SYSTEMTYPE_OOTBF;
+	CreatedBy$ = "OOTBF";
+	nFileHandle = ReadXMLFile(FileData$);
+   	if(nFileHandle >= 0)
+   		{
+   		Call InitializeSettings();
+  		Call GetStructureFromXML(FileData$);
+   		}
+   	else
+   		{
+   		Call DefaultSettings();
+		Call SaveDataToXMLFile();
+		nFileHandle = ReadXMLFile(FileData$);
+		Call GetStructureFromXML(FileData$);
+   		}
+	FileReadDone = 1;
+	FileReadDone = 0;
+  	}
+
+PUSH StartupSystemBuilder
+	{
+	SIGNED_INTEGER nFileHandle;
+	INTEGER Counter;
+	STRING FileData$[MAX_FILE_BUFFER];
+
+//	print("Reading FIle System Builder\n");
+	SystemType = SYSTEMTYPE_SYSTEMBUILDER;
+	Counter = 0;
+	While(Counter < 12)
+		{
+		nFileHandle = ReadXMLFile(FileData$);
+    	if(nFileHandle >= 0)
+    		{
+//    		print("Handle >= 0\n");
+    		Call GetStructureFromXML(FileData$);
+    		FileReadDone = 1;
+    		FileReadDone = 0;
+    		break;
+    		}
+    	else
+    		{
+    		Counter = Counter + 1;
+    		Delay(500);
+    		}
+    	}
+    if(Counter >= 12)
+    	{
+    	SystemBuilderFileReadError = 1;
+    	SystemBuilderFileReadError = 0;
+    	}
+    }
+
+PUSH StartupCustom
+	{
+	SIGNED_INTEGER nFileHandle;
+	STRING FileData$[MAX_FILE_BUFFER];
+
+//	print("Reading FIle Custom\n");
+	SystemType = SYSTEMTYPE_CUSTOM;
+	CreatedBy$ = "SimplWindows";
+	nFileHandle = ReadXMLFile(FileData$);
+	if(nFileHandle >= 0)
+		{
+//		print("Handle >= 0\n");
+		Call GetStructureFromXML(FileData$);
+		}
+	else
+		{
+		Call DefaultSettings();
+		Call SaveDataToXMLFile();
+		nFileHandle = ReadXMLFile(FileData$);
+		Call GetStructureFromXML(FileData$);
+		}
+	FileReadDone = 1;
+	FileReadDone = 0;
+	}
+
+/*
+
+    	if(nFileHandle < 0)
+ 	   		{
+
+
+    	if(SystemType <> SYSTEMTYPE_SYSTEMBUILDER)
+        	call DefaultSettings();
+        FileReadDone = 1;
+        FileReadDone = 0;
+	    }
+    else
+    	{
+		Call GetStructureFromXML();
+
+*/
+
+
+
+/*
+PUSH RecallSettings
+	{
+	if((ReadBusy = 0) && (WriteBusy = 0))
+		{
+		ReadBusy = 1;
+		Call GetStructureFromXML();
+		ReadBusy = 0;
+		}
+	}
+*/
+
+PUSH RestoreDefaults
+	{
+	SIGNED_INTEGER nFileHandle;
+	STRING FileData$[MAX_FILE_BUFFER];
+
+	Call DefaultSettings();
+	Call SaveDataToXMLFile();
+	nFileHandle = ReadXMLFile(FileData$);
+	Call GetStructureFromXML(FileData$);
+ 	RestoreDefaultsDone = 1;
+	RestoreDefaultsDone = 0;
+	}
+
+PUSH RestoreAudioDefaults
+	{
+	SIGNED_INTEGER nFileHandle;
+	STRING FileData$[MAX_FILE_BUFFER];
+
+	Call DefaultAudioSettings();
+	Call SaveDataToXMLFile();
+	nFileHandle = ReadXMLFile(FileData$);
+	Call GetStructureFromXML(FileData$);
+ 	RestoreAudioDefaultsDone = 1;
+	RestoreAudioDefaultsDone = 0;
+	}
+
+CHANGE Filename$
+	{
+	ADAGIO_DATA_FILE = Filename$;
+	}
+/*
+/////////////////////////////////////////////////////////////////////
+//
+// Function: signed_integer CompareFileDateAndTime(FILE_INFO, FILE_INFO)
+//
+// Parameters:
+//
+// Return Value:
+//
+// Description:
+//
+/////////////////////////////////////////////////////////////////////
+signed_integer_function CompareFileDateAndTime(FILE_INFO fiFile1, FILE_INFO fiFile2)
+{
+   if (fiFile1.iDate > fiFile2.iDate)
+     return(1);
+   else if (fiFile1.iDate < fiFile2.iDate)
+     return(-1);
+   else  //files have identical dates
+   {
+     if (fiFile1.iTime > fiFile2.iTime)
+       return (1);
+     else if (fiFile1.iTime < fiFile2.iTime)
+       return (-1);
+     else	//files have identical times
+       return (0);
+   }
+}
+*/
+
+
+/*******************************************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+*******************************************************************************************/
+
+Function Main()
+	{
+//    integer iCurrentTime, iLastCheckedTime;
+//    integer iCurrentDayOfWeek, iCurrentMonth;//, iCurrentYear;
+//    integer i;
+//    signed_integer iErrCode;
+
+//    FILE_INFO fiDataFile;
+
+//    WaitForInitializationComplete();
+
+//	g_fiDataFile.iTime = 0;
+// 	g_fiDataFile.iDate = 0;
+
+ 	SystemType = 0;
+ 	ReadBusy = 0;
+ 	WriteBusy = 0;
+ 	NeedWrite = 0;
+
+
+//    delay(1000);
+//    while (1)
+//    	{  //run forever
+
+//		delay(DELAYTIME);   //wait between loops, and also wait at startup before referencing "enable"
+
+    	  //if the data file has changed since the last time it was loaded, load it now
+
+      		//we're going for efficiency here; don't worry about return codes
+//     	if((ReadBusy = 0) && (WriteBusy = 0))
+//      		{
+//        	 if (StartFileOperations() >= 0)
+//	      		{
+//	        	iErrCode = FindFirst(ADAGIO_DATA_FILE, fiDataFile);
+//	        	FindClose();
+//	        	EndFileOperations();
+
+//				if (iErrCode < 0)
+//	    		    {
+//	        		print("AutoCreate\n");
+//		        	GetStructureFromXML();  // Create file if not found on disk
+//	        		}
+//	        	else
+//	        		{
+//		      		if (CompareFileDateAndTime(fiDataFile, g_fiDataFile) <> 0)
+//		      			{
+//		      			print("AutoRead\n");
+//		           		GetStructureFromXML(); // Load if it's a different file
+//		        		}
+//	        		}
+//	      		}
+//	      	else
+//	      		{
+//	  		    EndFileOperations();
+//	      		}
+//	  		}
+//  		} // while(1)
+    }
+
+

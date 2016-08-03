@@ -1,0 +1,87 @@
+AES 4.001.1012 (17 feb 2009)
+2193628
+
+
+
+03:    APAD LCD 6-button Panel [v1.002.0017,#001F82A9]
+04:    APAD LCD 6-button Panel [v1.002.0017,#001F85CC]
+05:    TPS-4L [v3.001.0034,#0020F0E0]   
+06:    TPS-4L [v3.001.0034,#001F48A2]   
+07:    TPS-4L [v3.001.0034,#0020F07E]   
+
+
+IP ID   Address             Entry Type  Dev ID  Port    Connection Type     Status      Fixed   
+06      127.000.000.001     slave       00      41794   gway                online              
+07      127.000.000.001     slave       00      41794   gway                offline             
+09      000.000.000.000     slave       00      41790   server              waiting             
+0A      000.000.000.000     slave       00      41791   server              waiting             
+18      127.000.000.001     slave       00      41794   gway                offline             
+
+Category:          Control System
+  SIMPL:             Level 1
+  SIMPL+:            Level 1
+  DisplayList:       NOT SUPPORTED
+  Web Server:        Enabled: Level 1
+  FTP Transfers:     NOT SUPPORTED
+  Ethernet Ports:    1: 1
+  Ethernet Active:   Yes
+  IP Table:          Yes
+  IP Table Format:   DIP: Level 2
+  IP Masters:        0
+  Max IP Entries:    252
+  Curr IP Entries:   10
+  DHCP Support:      Yes
+  Password:          Yes
+  LCD Front Panel:   Yes
+  Front Panel Slot:  12
+  NVRAM Size:        196864
+  NVRAM Used (Prog): 876
+  Max SIMPL+ Code:   1048576
+  Compact Flash:     NOT SUPPORTED
+  MMC:               NOT SUPPORTED
+  FirmwarePrefix:    AES
+  Program Retrieve:  Yes
+  Boot mode:         MASTER
+  PnP Address:       00 21 78 DC      VALID  (CSlave mode only)
+  PnP support:       Level 1
+  Dynamic Prot area: Level 1
+  SSL support:       SUPPORTED: Level 1
+  RConsole support:  SUPPORTED: Level 3
+  Network Analyzer:  NOT SUPPORTED
+  NPA Support:       NOT SUPPORTED
+  System Monitor:    SUPPORTED: Level 0
+  USB support:       Level 2
+  TJI support:       Level 5
+ RTJI support:       Level 2
+  MDBGSIGNAL:        SUPPORTED: Level 2
+  STACKTRACE:        SUPPORTED: Level 2
+  
+  
+   1: ATC-AMFM2 [v1.02.01, #0020BAD8] 
+   4: C2I-ADG-COM2-232 Build-in 2 RS232 Ports
+   5: C2I-ADG-IR 8 Port IR/1-Way RS232 Card
+   6: C2I-ADG-DI4 Build-in Digital Input Card
+   7: C2I-ADG-RY4 Build-in 4 Low Voltage Relays
+   8: C2I-ADG-IR-INPUT
+   9: C2I-ADG-AUDIO AES [v1.0.6, #F023911F]
+  11: C2I-ADGENET-1
+  12: C2I-ADG-FPANEL Front Panel [v1.00.12,#F0ADAD01]
+
+  
+            MinimumCUZ : 
+          TargetRack : AES
+      ProgramBootDir : \SIMPL\
+          SourceFile : C:\Crestron\Simpl\Programs\Pause\Eriksen\eriksen
+         ProgramFile : eriksen.smw
+          SystemName : eriksen
+          Programmer : Crestron SystemBuilder 3.08.15
+          CompiledOn : 9/28/2010 5:24 PM
+         CompilerRev : 2.12
+           SYMLIBRev : 679
+            IOLIBRev : 679
+           IOPCFGRev : 2.1.109
+       CrestronDBRev : 22.05.013.00
+   SourceEnvironment : SIMPL Windows v2.12.44
+                Type : User
+      ProgramVersion : 
+        ProgramIDTag : eriksen

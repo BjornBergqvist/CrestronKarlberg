@@ -1,0 +1,132 @@
+#ifndef __S2_ADAGIO_OOTBF_GROUP_EVALUATOR_V1_H__
+#define __S2_ADAGIO_OOTBF_GROUP_EVALUATOR_V1_H__
+
+
+
+
+/*
+* Constructor and Destructor
+*/
+
+/*
+* DIGITAL_INPUT
+*/
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPVOLUMETRACK_DIG_INPUT 0
+
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPACTIVE_DIG_INPUT 1
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPACTIVE_ARRAY_LENGTH 6
+
+/*
+* ANALOG_INPUT
+*/
+
+
+
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPROOMSLOW_ANALOG_INPUT 0
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPROOMSLOW_ARRAY_LENGTH 6
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPROOMSHIGH_ANALOG_INPUT 6
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPROOMSHIGH_ARRAY_LENGTH 6
+
+/*
+* DIGITAL_OUTPUT
+*/
+
+
+/*
+* ANALOG_OUTPUT
+*/
+
+
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_LINKEDGROUPSLOW_ANALOG_OUTPUT 0
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_LINKEDGROUPSLOW_ARRAY_LENGTH 6
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_LINKEDGROUPSHIGH_ANALOG_OUTPUT 6
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_LINKEDGROUPSHIGH_ARRAY_LENGTH 6
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPFORROOM_ANALOG_OUTPUT 12
+#define __S2_Adagio_OOTBF_Group_Evaluator_v1_GROUPFORROOM_ARRAY_LENGTH 24
+
+/*
+* Direct Socket Variables
+*/
+
+
+
+
+/*
+* INTEGER_PARAMETER
+*/
+/*
+* SIGNED_INTEGER_PARAMETER
+*/
+/*
+* LONG_INTEGER_PARAMETER
+*/
+/*
+* SIGNED_LONG_INTEGER_PARAMETER
+*/
+/*
+* INTEGER_PARAMETER
+*/
+/*
+* SIGNED_INTEGER_PARAMETER
+*/
+/*
+* LONG_INTEGER_PARAMETER
+*/
+/*
+* SIGNED_LONG_INTEGER_PARAMETER
+*/
+/*
+* STRING_PARAMETER
+*/
+
+
+/*
+* INTEGER
+*/
+
+
+/*
+* LONG_INTEGER
+*/
+
+
+/*
+* SIGNED_INTEGER
+*/
+
+
+/*
+* SIGNED_LONG_INTEGER
+*/
+
+
+/*
+* STRING
+*/
+
+/*
+* STRUCTURE
+*/
+
+START_GLOBAL_VAR_STRUCT( S2_Adagio_OOTBF_Group_Evaluator_v1 )
+{
+   void* InstancePtr;
+   struct GenericOutputString_s sGenericOutStr;
+   unsigned short LastModifiedArrayIndex;
+
+   DECLARE_IO_ARRAY( __GROUPACTIVE );
+   DECLARE_IO_ARRAY( __GROUPROOMSLOW );
+   DECLARE_IO_ARRAY( __GROUPROOMSHIGH );
+   DECLARE_IO_ARRAY( __LINKEDGROUPSLOW );
+   DECLARE_IO_ARRAY( __LINKEDGROUPSHIGH );
+   DECLARE_IO_ARRAY( __GROUPFORROOM );
+};
+
+START_NVRAM_VAR_STRUCT( S2_Adagio_OOTBF_Group_Evaluator_v1 )
+{
+};
+
+
+
+#endif //__S2_ADAGIO_OOTBF_GROUP_EVALUATOR_V1_H__
+

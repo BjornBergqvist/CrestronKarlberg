@@ -1,0 +1,314 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #SYMBOL_NAME ""
+// #HINT ""
+#DEFINE_CONSTANT	MAXGROUPS		6
+#DEFINE_CONSTANT	MAXROOMS		24
+#DEFINE_CONSTANT	MAXSOURCES		10
+
+#DEFINE_CONSTANT	FALSE			0
+#DEFINE_CONSTANT	TRUE			1
+#CATEGORY "0" 
+#DEFAULT_VOLATILE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  Include Libraries
+  (Uncomment and include additional libraries as needed)
+*******************************************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT GroupActive[MAXGROUPS];
+ANALOG_INPUT GroupRoomsLow[MAXGROUPS];
+ANALOG_INPUT GroupRoomsHigh[MAXGROUPS];
+ANALOG_INPUT CurrentRoomSource[MAXROOMS];
+ANALOG_INPUT SourceControlRequest[MAXROOMS];
+ANALOG_INPUT SourceControlOverride[MAXROOMS];
+// STRING_INPUT 
+// BUFFER_INPUT 
+
+DIGITAL_OUTPUT ControlOk[MAXROOMS];
+DIGITAL_OUTPUT ControlFailed[MAXROOMS];
+DIGITAL_OUTPUT ControlRemoved[MAXROOMS];
+ANALOG_OUTPUT SourceOwner[MAXSOURCES];
+// STRING_OUTPUT 
+
+INTEGER_FUNCTION IAmInGroup(INTEGER Room, INTEGER Group)
+	{
+	INTEGER Mask;
+	INTEGER Flag;
+	
+	if(Room <= 12)
+		{
+		Mask = 0x0001 << (Room - 1);
+		if((GroupRoomsLow[Group] & Mask) > 0)
+			Flag = TRUE;
+		else
+			Flag = FALSE;
+		}
+	else if(Room <= 24)
+		{
+		Mask = 0x0001 << (Room - 13);
+		if((GroupRoomsHigh[Group] & Mask) > 0)
+			Flag = TRUE;
+		else
+			Flag = FALSE;
+		}
+	Return(Flag);
+	}		
+/*	
+CHANGE CurrentRoomSource
+	{
+	INTEGER Index;
+	INTEGER i;
+	INTEGER Flag;
+	INTEGER SourceReleased;
+	
+	Index = getlastmodifiedarrayindex();
+	if(CurrentRoomSource[Index] > 0)									//If the room is on...
+		{
+		if(SourceOwner[CurrentRoomSource[Index]] = 0)					//If nobody owns the source...
+			{
+			Flag = FALSE;
+			for(i = 1 to MAXGROUPS)										//Check all groups to see if this room is a member
+				{
+				if((IAmInGroup(Index, i) = TRUE) && (GroupActive[i] = TRUE))	//If this room is a member of the group, and the group is on...
+					{
+					Flag = TRUE;
+					SourceOwner[CurrentRoomSource[Index]] = SourceOwner[CurrentRoomSource[Index]] | (0x0200 << i);	//Add this group to the list of owners
+					}
+				}
+			if(Flag = FALSE)											//If the room is not part of any active groups...
+				SourceOwner[CurrentRoomSource[Index]] = Index;			//Then my room owns it
+			}
+		}
+	else																//If the room was just turned off...
+		{
+		for(i = 1 to MAXSOURCES)
+			{
+			if(SourceOwner[i] = Index)
+				{
+				SourceReleased = i;
+				SourceOwner[i] = 0;										//Release any sources that the room had owned
+			}
+		for(i = 1 to MAXROOMS)
+			{
+			if(CurrentRoomSource[i] = SourceReleased)
+				{
+				ControlOk[i] = TRUE;
+				}
+			}
+		}
+	}
+*/
+
+CHANGE CurrentRoomSource
+	{
+	INTEGER Room;
+	INTEGER i;
+	INTEGER j;
+	INTEGER Flag;
+	INTEGER SourceReleased;
+	
+	Room = getlastmodifiedarrayindex();
+	for(i = 1 to MAXSOURCES)
+		{
+		if(SourceOwner[i] = Room)
+			{
+			SourceReleased = i;
+			SourceOwner[i] = 0;		
+//			print("Source %d Released by Room %d\n", i, Room);
+																		//Release any sources that the room had owned
+//			for(j = 1 to MAXROOMS)
+//				{
+//				if(CurrentRoomSource[j] = SourceReleased)				//Enable Control for any other rooms that had selected that source
+//					{
+//					ControlOk[j] = TRUE;
+//					}
+//				}
+			}
+		}
+	if(CurrentRoomSource[Room] > 0)										//If the room is on...
+		{
+		if(SourceOwner[CurrentRoomSource[Room]] = 0)					//If nobody owns the source...
+			{
+			Flag = FALSE;
+			for(i = 1 to MAXGROUPS)										//Check all groups to see if this room is a member
+				{
+				if((IAmInGroup(Room, i) = TRUE) && (GroupActive[i] = TRUE))	//If this room is a member of the group, and the group is on...
+					{
+					Flag = TRUE;
+					SourceOwner[CurrentRoomSource[Room]] = SourceOwner[CurrentRoomSource[Room]] | (0x0200 << i);	//Add this group to the list of owners
+//					print("Source %d Assigned to Group %d\n", CurrentRoomSource[Room], i);
+					}
+				}
+			if(Flag = FALSE)
+				{											//If the room is not part of any active groups...
+				SourceOwner[CurrentRoomSource[Room]] = Room;			//Then my room owns it
+//				print("Source %d Assigned to Room %d\n", CurrentRoomSource[Room], Room);
+				}
+			}
+		}
+	}
+	
+RELEASE GroupActive
+	{
+	INTEGER Index;
+	INTEGER i;
+	INTEGER Mask;
+	
+	Index = getlastmodifiedarrayindex();
+	Mask = (0xFDFF {{ Index);
+	for(i = 1 to MAXSOURCES)
+		SourceOwner[i] = (SourceOwner[i] & Mask);						//Remove this group from the list of source owners
+	}
+
+CHANGE SourceControlRequest
+	{
+	INTEGER Room;
+	INTEGER i;
+	INTEGER Flag;
+	
+	Room = getlastmodifiedarrayindex();
+	if((SourceControlRequest[Room] > 0) && (CurrentRoomSource[Room] > 0))
+		{
+		if(SourceOwner[CurrentRoomSource[Room]] = Room)					//If this room owns the source, it can control it
+			{
+			ControlOk[Room] = 1;
+			ControlOk[Room] = 0;
+//			print("Source %d owned by Room %d, Control Ok\n", CurrentRoomSource[Room], Room);
+			}
+		else
+			{
+			Flag = FALSE;
+			for(i = 1 to MAXGROUPS)										//If this room is in group that owns the source, it can control it
+				{
+				if((IAmInGroup(Room, i) = TRUE) && (GroupActive[i] = TRUE) && ((SourceOwner[CurrentRoomSource[Room]] & (0x0200 << i)) > 0))
+					{
+					Flag = TRUE;
+					ControlOk[Room] = 1;
+					ControlOk[Room] = 0;
+//					print("Source %d owned by Group %d, Control Ok\n", CurrentRoomSource[Room], i);
+					break;
+					}
+				}
+			if(Flag = FALSE)
+				{
+				if(SourceOwner[CurrentRoomSource[Room]] = 0)			//If nobody owns the source, this room can own and control it
+					{
+					Flag = FALSE;
+					for(i = 1 to MAXGROUPS)										//Check all groups to see if this room is a member
+						{
+						if((IAmInGroup(Room, i) = TRUE) && (GroupActive[i] = TRUE))	//If this room is a member of the group, and the group is on...
+							{
+							Flag = TRUE;
+							SourceOwner[CurrentRoomSource[Room]] = SourceOwner[CurrentRoomSource[Room]] | (0x0200 << i);	//Add this group to the list of owners
+							ControlOk[Room] = 1;
+							ControlOk[Room] = 0;
+//							print("Source %d assigned to Group %d, Control Ok\n", CurrentRoomSource[Room], i);
+							}
+						}
+					if(Flag = FALSE)											//If the room is not part of any active groups...
+						{
+						SourceOwner[CurrentRoomSource[Room]] = Room;			//Then my room owns it
+						ControlOk[Room] = 1;
+						ControlOk[Room] = 0;
+//						print("Source %d assigned to Room %d, Control Ok\n", CurrentRoomSource[Room], Room);
+						}
+					}
+				else
+					{
+					ControlFailed[Room] = 1;
+					ControlFailed[Room] = 0;
+//					print("Source %d owned by Room %d, Control Denied\n", CurrentRoomSource[Room], SourceOwner[CurrentRoomSource[Room]]);
+					}
+				}
+			}
+		}
+	}
+	
+CHANGE SourceControlOverride
+	{
+	INTEGER Index;
+	INTEGER i;
+	INTEGER j;
+	INTEGER Flag;
+	
+	Index = getlastmodifiedarrayindex();
+	if(SourceControlOverride[Index] > 0)
+		{
+		if((SourceOwner[CurrentRoomSource[Index]] & 0x03FF) > 0)					//If source was owned by a room...
+			{
+			ControlRemoved[SourceOwner[CurrentRoomSource[Index]]] = 1;
+			ControlRemoved[SourceOwner[CurrentRoomSource[Index]]] = 0;
+			}
+		else if((SourceOwner[CurrentRoomSource[Index]] & 0xFD00) > 0)				//If the source was owned by one or more groups
+			{
+			for(i = 1 to MAXGROUPS)
+				{
+				if(GroupActive[i] = TRUE)
+					{
+					if((SourceOwner[CurrentRoomSource[Index]] & (0x0200 << i)) > 0)	//If this group is an owner of this source...
+						{
+						for(j = 1 to 12)											//Check to see which rooms are a member of the group
+							{
+							if((GroupRoomsLow[i] & (0x0001 << (j - 1))) > 0)
+								{
+								ControlRemoved[j] = 1;
+								ControlRemoved[j] = 0;
+								}
+							}
+						for(j = 13 to 24)
+							{
+							if((GroupRoomsHigh[i] & (0x0001 << (j - 13))) > 0)
+								{
+								ControlRemoved[j] = 1;
+								ControlRemoved[j] = 0;
+								}
+							}
+						}
+					}
+				}			
+			}
+		Flag = FALSE;
+		SourceOwner[CurrentRoomSource[Index]] = 0;
+		for(i = 1 to MAXGROUPS)
+			{
+			if((IAmInGroup(Index, i) = TRUE) && (GroupActive[i] = TRUE))
+				{
+				Flag = TRUE;
+				SourceOwner[CurrentRoomSource[Index]] = (SourceOwner[CurrentRoomSource[Index]] | (0x0200 << i));
+				}
+			}
+		if(Flag = FALSE)
+			SourceOwner[CurrentRoomSource[Index]] = Index;
+		}
+	}

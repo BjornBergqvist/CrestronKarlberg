@@ -1,0 +1,57 @@
+<?xml version='1.0' encoding='ISO-8859-1' ?>
+<File Type='Manifest' Version='2.1.0'>
+<Project FileName='Eriksen-iPhone.zip' Size='52216' Build='20100928133725'>
+<Sources>
+<Source FileName='Eriksen-iPhone.xml' Size='585' Type='Application' Build='20100928133718' />
+<Source FileName='Eriksen-iPhone_Resource.xml' Size='17339' Type='Resource' Build='20100928133718' />
+<Source FileName='[SOVRUM] [iPod] Reading Media Library.xml' Size='2109' Type='Subpage' Build='20100928133718' />
+<Source FileName='[SOVRUM] [iPod] Message Page.xml' Size='2231' Type='Subpage' Build='20100928133716' />
+<Source FileName='[SOVRUM] [iPod] Search Button.xml' Size='1315' Type='Subpage' Build='20100928133716' />
+<Source FileName='[SOVRUM] [iPod] Search.xml' Size='40649' Type='Subpage' Build='20100928133716' />
+<Source FileName='[SOVRUM] [iPod] Player.xml' Size='13753' Type='Subpage' Build='20100928133712' />
+<Source FileName='[SOVRUM] [iPod] Busy.xml' Size='2043' Type='Subpage' Build='20100928133711' />
+<Source FileName='[SOVRUM] [iPod] Browse.xml' Size='10825' Type='Subpage' Build='20100928133711' />
+<Source FileName='[SOVRUM] [iPod] Back Button.xml' Size='1315' Type='Subpage' Build='20100928133710' />
+<Source FileName='[SOVRUM] [iPod].xml' Size='5483' Type='Page' Build='20100928133709' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 2] Presets.xml' Size='15796' Type='Subpage' Build='20100928133709' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 2] Preset Save-Clear Popup.xml' Size='4540' Type='Subpage' Build='20100928133707' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 2] Preset Save Popup.xml' Size='3588' Type='Subpage' Build='20100928133707' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 2] NowPlaying.xml' Size='11821' Type='Subpage' Build='20100928133706' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 2] Manual Gauge.xml' Size='21819' Type='Subpage' Build='20100928133705' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 2] Manual.xml' Size='21813' Type='Subpage' Build='20100928133703' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 2].xml' Size='5345' Type='Page' Build='20100928133701' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 1] Presets.xml' Size='15796' Type='Subpage' Build='20100928133701' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 1] Preset Save-Clear Popup.xml' Size='4540' Type='Subpage' Build='20100928133799' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 1] Preset Save Popup.xml' Size='3588' Type='Subpage' Build='20100928133799' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 1] NowPlaying.xml' Size='11821' Type='Subpage' Build='20100928133798' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 1] Manual Gauge.xml' Size='21819' Type='Subpage' Build='20100928133796' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 1] Manual.xml' Size='21813' Type='Subpage' Build='20100928133795' />
+<Source FileName='[SOVRUM] [AM-FM Tuner - AM-FM 1].xml' Size='5345' Type='Page' Build='20100928133793' />
+<Source FileName='[Scheduler] Edit Event Months.xml' Size='23368' Type='Page' Build='20100928133792' />
+<Source FileName='[Scheduler] Edit Event Days.xml' Size='17577' Type='Page' Build='20100928133790' />
+<Source FileName='[Scheduler] Edit.xml' Size='17405' Type='Page' Build='20100928133788' />
+<Source FileName='[Scheduler] Browse.xml' Size='33215' Type='Page' Build='20100928133787' />
+<Source FileName='[Scheduler].xml' Size='7459' Type='Page' Build='20100928133784' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Back Button.xml' Size='1209' Type='Subpage' Build='20100928133782' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Crestron Logo.xml' Size='1097' Type='Subpage' Build='20100928133782' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Home Button.xml' Size='987' Type='Subpage' Build='20100928133782' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Volume.xml' Size='3196' Type='Subpage' Build='20100928133781' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Sleep.xml' Size='4347' Type='Subpage' Build='20100928133781' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Room Select.xml' Size='13022' Type='Page' Build='20100928133780' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Power.xml' Size='1080' Type='Subpage' Build='20100928133779' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Listen-only (no override).xml' Size='6402' Type='Page' Build='20100928133779' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Listen-only.xml' Size='6388' Type='Page' Build='20100928133778' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Interrupt.xml' Size='2029' Type='Subpage' Build='20100928133777' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Current Room.xml' Size='1065' Type='Subpage' Build='20100928133777' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Advanced Access.xml' Size='1222' Type='Subpage' Build='20100928133777' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Advanced.xml' Size='5488' Type='Page' Build='20100928133776' />
+<Source FileName='[VARDAGSRUM] [Audio Zone].xml' Size='13829' Type='Page' Build='20100928133775' />
+<Source FileName='[Shared] Crestron Logo.xml' Size='1080' Type='Subpage' Build='20100928133773' />
+<Source FileName='[Shared] Lights.xml' Size='8387' Type='Page' Build='20100928133773' />
+<Source FileName='No Device Assigned.xml' Size='4929' Type='Page' Build='20100928133771' />
+<Source FileName='[Adagio] Other.xml' Size='6883' Type='Page' Build='20100928133770' />
+<Source FileName='[Adagio] Climate.xml' Size='5826' Type='Page' Build='20100928133769' />
+<Source FileName='[VARDAGSRUM] [Audio Zone] Home.xml' Size='7225' Type='Page' Build='20100928133768' />
+</Sources>
+</Project>
+</File>

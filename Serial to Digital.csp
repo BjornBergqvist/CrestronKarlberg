@@ -1,0 +1,70 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #ENABLE_DYNAMIC
+// #SYMBOL_NAME ""
+// #HINT ""
+#DEFINE_CONSTANT	MAXLENGTH	250
+#CATEGORY "0"
+#DEFAULT_VOLATILE
+// #PRINT_TO_TRACE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #HELP_PDF_FILE ""
+// #DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+#ENABLE_TRACE
+
+/********************************
+* I/O
+********************************/
+STRING_INPUT aString[MAXLENGTH];
+
+DIGITAL_OUTPUT aString_is_Populated;
+
+/********************************
+* Global Var
+********************************/
+INTEGER sema4;
+
+/********************************
+* Funcs
+********************************/
+CHANGE aString
+{
+	if (sema4 = 0)
+	{
+		sema4 = 1;
+		wait(50, w_aString)
+		{
+			sema4 = 0;
+			if (len(aString))
+				aString_is_Populated = ON;
+			else
+				aString_is_Populated = OFF;
+		}
+	}
+}
+
+/********************************
+* Main
+********************************/
+FUNCTION Main()
+{
+	sema4 = 0;
+}
+

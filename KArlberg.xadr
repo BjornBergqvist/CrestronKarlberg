@@ -1,0 +1,28 @@
+[Crestron_Toolbox_Address_Book]
+
+[Entries]
+This .xadr file was created using Toolbox v2.41 or later.=:slot 01
+It is not compatible with this version of Toolbox.=:slot 02
+Please open a .adr Address Book to continue.=:slot 03
+
+[AddressBookInfo]
+Schema=2.0
+Version=1.0
+DefaultEntry=SOLHAGA
+
+[ComSpecs]
+TPD-Vardagsrum?=SOLHAGA:cresnet 05
+TPS-Kök=SOLHAGA:cresnet 06
+TPS-Bad=SOLHAGA:cresnet 07
+SOLHAGA=ctp 192.168.1.6
+APAD-Sovrum=SOLHAGA:cresnet 04
+ÄPAD-Matsal=SOLHAGA:cresnet 03
+
+[Notes]
+TPD-Vardagsrum?=
+TPS-Kök=
+TPS-Bad=
+SOLHAGA=
+APAD-Sovrum=
+ÄPAD-Matsal=
+

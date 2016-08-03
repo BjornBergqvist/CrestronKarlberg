@@ -1,0 +1,365 @@
+#DEFINE_CONSTANT	MENUMAIN					1
+#DEFINE_CONSTANT	MENUABOUT					2
+#DEFINE_CONSTANT	MENUCONFIGUREAUDIONETCARD	3
+
+#DEFINE_CONSTANT	ABOUTENTRIES				9
+
+#DEFAULT_VOLATILE
+
+#Category "0"
+
+#ENABLE_STACK_CHECKING
+
+
+
+DIGITAL_INPUT KnobLeft;
+DIGITAL_INPUT KnobRight;
+DIGITAL_INPUT Enter;
+DIGITAL_INPUT Menu;
+
+DIGITAL_INPUT Start;
+
+DIGITAL_INPUT WriteConfig;
+
+DIGITAL_INPUT AudioNetConfigurationComplete;
+
+ANALOG_INPUT ScrollPageSize;
+ANALOG_INPUT Slot1ID;
+ANALOG_INPUT Slot2ID;
+ANALOG_Input Slot3ID;
+ANALOG_INPUT TotalAudionetCards;
+
+STRING_INPUT About$[ABOUTENTRIES][48];
+
+DIGITAL_OUTPUT ExitInstaller;
+DIGITAL_OUTPUT DigitalOut[8];
+ANALOG_OUTPUT CurrentMenu;
+ANALOG_OUTPUT BacklightConfigured;
+ANALOG_OUTPUT FrontPanelLockConfigured;
+ANALOG_OUTPUT AudioNetSelectedOut;
+ANALOG_OUTPUT AnalogOut[5];
+STRING_OUTPUT SoftKey$[4];
+STRING_OUTPUT SerialOut$[7];
+
+
+INTEGER ScrollIndex;
+INTEGER ScrollHighlight;
+INTEGER ScrollMax;
+INTEGER OldScrollIndex;
+INTEGER OldScrollHighlight;
+INTEGER AudioNetSelected;
+
+INTEGER CENIPODConfigured;
+INTEGER AASConfigured;
+INTEGER CENISERVER_CENIDOCVconfigured;
+
+STRING AboutIndex$[ABOUTENTRIES][10];
+STRING List$[4][32];
+
+FUNCTION CalculateScrollBar(INTEGER Total, INTEGER Index)
+	{
+	if(Index <= 1)
+		AnalogOut[5] = 65535;
+	else if((Index + ScrollPageSize - 1) >= Total)
+		AnalogOut[5] = 0;
+	else
+		AnalogOut[5] = -((65535/(Total - ScrollPageSize)) * (Index - 1));
+	}
+
+FUNCTION DrawMenu(INTEGER Total, INTEGER Index, INTEGER Highlight)
+	{
+	INTEGER i;
+
+	for(i = 1 to ScrollPageSize)
+		{
+		if((Index + i - 1) <= Total)
+			SerialOut$[i + 1] = List$[Index + i - 1];
+		else
+			SerialOut$[i + 1] = "";
+		if((Index + i - 1) = Highlight)
+			DigitalOut[i] = 1;
+		else
+			DigitalOut[i] = 0;
+		}
+	Call CalculateScrollbar(Total, Index);
+	}
+
+Function DrawMenuWithIndex(INTEGER Total, INTEGER Index, INTEGER Highlight)
+	{
+	INTEGER i;
+
+	for(i = 1 to ScrollPageSize)
+		{
+		if((Index + i - 1) <= Total)
+			{
+			SerialOut$[i + 4] = AboutIndex$[Index + i - 1];
+			SerialOut$[i + 1] = About$[Index + i - 1];
+			}
+		else
+			{
+			SerialOut$[i + 4] = "";
+			SerialOut$[i + 1] = "";
+			}
+		if((Index + i - 1) = Highlight)
+			DigitalOut[i] = 1;
+		else
+			DigitalOut[i] = 0;
+		}
+	Call CalculateScrollbar(Total, Index);
+    }
+
+Function InitMenuAbout()
+	{
+	INTEGER i;
+
+
+	SoftKey$[1] = "";
+	SoftKey$[2] = "";
+	SoftKey$[3] = "";
+	SoftKey$[4] = "";
+
+	CurrentMenu = MENUABOUT;
+	SerialOut$[1] = "System Information";
+	AboutIndex$[1] = "Addr:";
+	AboutIndex$[2] = "Mask:";
+	AboutIndex$[3] = "Host:";
+	AboutIndex$[4] = "Ops:";
+	AboutIndex$[5] = "Flash:";
+	AboutIndex$[6] = "Ver:";
+	AboutIndex$[7] = "Date:";
+	AboutIndex$[8] = "Panel:";
+	AboutIndex$[9] = "Firm:";
+
+	ScrollMax = ABOUTENTRIES;
+	ScrollIndex = 1;
+	ScrollHighlight = 1;
+	Call DrawMenuWithIndex(ScrollMax, ScrollIndex, ScrollHighlight);
+	}
+
+FUNCTION InitMenuMain()
+	{
+	INTEGER i;
+
+	CurrentMenu = MENUMAIN;
+	SerialOut$[1] = "Installer Tools";
+	List$[1] = "About";
+	i = 2;
+	if(Slot1ID = 4)
+		{
+		List$[i] = "Slot 1 ATC-AUDIONET";
+		i = i + 1;
+		}
+	if(Slot2ID = 4)
+		{
+		List$[i] = "Slot 2 ATC-AUDIONET";
+		i = i + 1;
+		}
+	if(Slot3ID = 4)
+		{
+		List$[i] = "Slot 3 ATC-AUDIONET";
+		}
+	SoftKey$[1] = "";
+	SoftKey$[2] = "";
+	SoftKey$[3] = "";
+	SoftKey$[4] = "";
+	ScrollMax = TotalAudioNetCards + 1;
+	ScrollIndex = 1;
+	ScrollHighlight = 1;
+	Call DrawMenu(ScrollMax, ScrollIndex, ScrollHighlight);
+    }
+
+Function WriteConfigFile()
+	{
+	SIGNED_INTEGER Error;
+	SIGNED_INTEGER File;
+	STRING Tempstring$[255];
+
+	Error = startfileoperations();
+	if(Error < 0)
+		{
+		Print("Error %d Writing Config to file.\n", Error);
+		}
+	else
+		{
+       	Error = SetCurrentDirectory("\\NVRAM");
+   		if (Error <> 0)
+       		Print("Error changing directory: %d\n", Error);
+		File = FileOpen("System Configuration.txt",_O_RDWR | _O_CREAT | _O_TRUNC | _O_TEXT);
+		If (File < 0)
+			{
+			Print("Error writing configuration file: %d\n", File);
+			}
+		Else
+    		{
+    		Makestring(TempString$, "CEN-IPOD = %d\n", CENIPODConfigured);
+    		filewrite(File, TempString$, len(TempString$));
+    		MakeString(TempString$, "AAS = %d\n", AASConfigured);
+    		filewrite(File, TempString$, len(TempString$));
+    		MakeString(TempString$, "Backlight = %d\n", BacklightConfigured);
+    		filewrite(File, TempString$, len(TempString$));
+    		MakeString(TempString$, "Front Panel Lock = %d\n", FrontPanelLockConfigured);
+    		filewrite(File, TempString$, len(TempString$));
+    		MakeString(TempString$, "CEN-ISERVER/CEN-IDOCV = %d\n", CENISERVER_CENIDOCVconfigured);
+    		filewrite(File, TempString$, len(TempString$));
+    		}
+    	FileClose(File);
+    	}
+    endfileoperations();
+	}
+
+INTEGER_Function ReadConfigFile()
+	{
+	SIGNED_INTEGER Error;
+	SIGNED_INTEGER File;
+	INTEGER Success;
+	STRING TempIn$[255];
+	STRING ReadIn$[255];
+	STRING Read$[200];
+
+	Success = 0;
+	Error = startfileoperations();
+	File = FileOpen("\\NVRAM\\System Configuration.txt",_O_RDONLY | _O_TEXT);
+	if(File >= 0)
+		{
+		Success = 1;
+		TempIn$ = "";
+		ReadIn$ = "";
+		While(FileEOF(File) = 0)
+			{
+			Error = FileRead(File, Read$, 100);
+			ReadIn$ = ReadIn$ + Read$;
+			if(Error >= 0)
+				{
+				while(find("\x0D\x0A", ReadIn$) > 0)
+					{
+					TempIn$ = remove("\x0D\x0A", ReadIn$);
+					if(find("CEN-IPOD = ", TempIn$) > 0)
+						CENIPODConfigured = atoi(TempIn$);
+					else if(find("AAS = ", TempIn$) > 0)
+						AASConfigured = atoi(TempIn$);
+					else if(find("Backlight = ", TempIn$) > 0)
+						BacklightConfigured = atoi(TempIn$);
+					else if(find("Front Panel Lock = ", TempIn$) > 0)
+						FrontPanelLockConfigured = atoi(TempIn$);
+					else if(find("CEN-ISERVER/CEN-IDOCV = ", TempIn$) > 0)
+						CENISERVER_CENIDOCVconfigured = atoi(TempIn$);
+					}
+				}
+			}
+		}
+	fileclose(File);
+	endfileoperations();
+	Return(Success);
+	}
+
+
+PUSH Start
+	{
+	if(TotalAudioNetCards = 0)
+		Call InitMenuAbout();
+	else
+		Call InitMenuMain();
+	}
+
+PUSH Menu
+	{
+	if(CurrentMenu = MENUABOUT)
+		{
+		if(TotalAudioNetCards = 0)
+			{
+			ExitInstaller = 1;
+			ExitInstaller = 0;
+			}
+		else
+			{
+			ScrollIndex = OldScrollIndex;
+			ScrollHighlight = OldScrollHighlight;
+			Call InitMenuMain();
+			}
+		}
+	else if(CurrentMenu = MENUMAIN)
+		{
+		ExitInstaller = 1;
+		ExitInstaller = 0;
+		}
+	}
+
+PUSH KnobLeft
+	{
+    if((CurrentMenu = MENUABOUT) || (CurrentMenu = MENUMAIN))
+	    {
+    	if(ScrollHighlight > 1)
+			{
+			ScrollHighlight = ScrollHighlight - 1;
+			if(ScrollHighlight < ScrollIndex)
+	    		{
+	    		ScrollIndex = ScrollHighlight;
+				}
+			if(CurrentMenu = MENUABOUT)
+				Call DrawMenuWithIndex(ScrollMax, ScrollIndex, ScrollHighlight);
+			else
+				Call DrawMenu(ScrollMax, ScrollIndex, ScrollHighlight);
+			}
+		}
+	}
+
+PUSH KnobRight
+	{
+	if((CurrentMenu = MENUABOUT) || (CurrentMenu = MENUMAIN))
+		{
+		if(ScrollHighlight < ScrollMax)
+			{
+			ScrollHighlight = ScrollHighlight + 1;
+			if(ScrollHighlight > ScrollIndex + ScrollPageSize - 1)
+		   		{
+		   		ScrollIndex = ScrollIndex + 1;
+				}
+			if(CurrentMenu = MENUABOUT)
+				Call DrawMenuWithIndex(ScrollMax, ScrollIndex, ScrollHighlight);
+			else
+				Call DrawMenu(ScrollMax, ScrollIndex, ScrollHighlight);
+			}
+		}
+	}
+
+PUSH Enter
+	{
+	if(CurrentMenu = MENUMAIN)
+		{
+		if(ScrollHighlight = 1)
+			{
+			OldScrollIndex = ScrollIndex;
+			OldScrollHighlight = ScrollHighlight;
+			Call InitMenuAbout();
+			}
+		else if(ScrollHighlight < 5)
+			{
+			AudioNetSelected = atoi(List$[ScrollHighlight]);
+			AudioNetSelectedOut = AudioNetSelected;
+			CurrentMenu = MENUCONFIGUREAUDIONETCARD;
+			}
+		}
+	}
+
+PUSH WriteConfig
+	{
+	Call WriteConfigFile();
+	}
+
+PUSH AudioNetConfigurationComplete
+	{
+	Call InitMenuMain();
+	}
+
+Function Main()
+	{
+	INTEGER i;
+
+	CENIPODConfigured = 0;
+	AASConfigured = 0;
+	BacklightConfigured = 0;
+	CENISERVER_CENIDOCVconfigured = 0;
+	waitforinitializationcomplete();
+	if(ReadConfigFile() = 0)
+		call WriteConfigFile();
+	}

@@ -1,0 +1,220 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #SYMBOL_NAME ""
+// #HINT ""
+#DEFINE_CONSTANT OPS 		1
+#DEFINE_CONSTANT IPA 		2
+#DEFINE_CONSTANT IPM 		3
+#DEFINE_CONSTANT DEFR 		4
+#DEFINE_CONSTANT PROGRAM 	5
+#DEFINE_CONSTANT COMPILED 	6
+#DEFINE_CONSTANT HOSTNAME	7
+#DEFINE_CONSTANT MACADDRESS 9
+#DEFINE_CONSTANT OPTION		10
+#DEFINE_CONSTANT FLASHSIZE	11
+
+#CATEGORY "0" 
+#DEFAULT_VOLATILE
+// #DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  Include Libraries
+  (Uncomment and include additional librarys as needed)
+*******************************************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT Go; 
+BUFFER_INPUT FromConsole$[1000]; 
+
+DIGITAL_OUTPUT Busy, Error, Adanto; 
+STRING_OUTPUT Ops$, Program$, Compiled$, IPA$, IPM$, DefR$, Version$, Mac$, HostName$, FlashSize$, ToConsole$; 
+    
+    
+INTEGER Marker1, Marker2, Semaphore, Counter, BusyInt, Count;
+STRING Tempstring$[200];    
+    
+    
+PUSH Go
+	{
+	Busy = 1;
+	BusyInt = 1;
+	ToConsole$ = "\n";
+	delay(100);
+	Counter = OPS;
+	ToConsole$ = "version\n";
+	wait(800)
+		{
+		Error = 1;
+		Error = 0;
+		Busy = 0;
+		BusyInt = 0;
+		}
+	}
+
+CHANGE FromConsole$
+	{
+	if((Semaphore = 0) && (BusyInt = 1))
+		{
+		Semaphore = 1;
+		While(find("\x0D\x0A", FromConsole$) > 0)
+			{
+			TempString$ = remove("\x0D\x0A", FromConsole$);
+			Switch(Counter)
+				{
+				Case(OPS):
+					{
+					marker1 = find("Cntrl Eng [", Tempstring$);
+					marker2 = find("]", Tempstring$, Marker1 + 11);
+					if((Marker1 > 0) && (Marker2 > 0))
+						{
+						Ops$ = mid(Tempstring$, marker1 + 11, Marker2 - Marker1 - 11);
+						Counter = IPA;
+						ToConsole$ = "fpipaddress\n";
+						}
+					}
+				Case(IPA):
+					{
+					marker1 = find("Device 0 IP address: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 21);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						IPA$ = mid(Tempstring$, marker1 + 21, Marker2 - Marker1 - 21);
+						Counter = IPM;
+						ToConsole$ = "fpipmask\n";
+						}
+					}
+				Case(IPM):
+					{
+					marker1 = find("Device 0 Subnet Mask: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 22);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						IPM$ = mid(Tempstring$, marker1 + 22, Marker2 - Marker1 - 22);
+						Counter = DEFR;
+						ToConsole$ = "fpdefrouter\n";
+						}
+					}
+				Case(DEFR):
+					{
+					marker1 = find("Default Router: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 16);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						DefR$ = mid(Tempstring$, marker1 + 16, Marker2 - Marker1 - 16);
+						Counter = MACADDRESS;
+						ToConsole$ = "getcode\n";
+						}
+					}
+				Case(MACADDRESS):
+					{
+					marker1 = find("Activation is :", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 15);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						Mac$ = mid(Tempstring$, marker1 + 15, Marker2 - Marker1 - 15);
+						Counter = HOSTNAME;
+						ToConsole$ = "Hostname\n";
+						}
+					}
+				Case(HOSTNAME):
+					{
+					marker1 = find("Host Name: ", Tempstring$);
+					marker2 = find("\x0D\x0A", TempString$, marker1 + 11);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						HostName$ = mid(TempString$, marker1 + 11, marker2 - marker1 - 11);
+						Counter = PROGRAM;
+						clearbuffer(FromConsole$);
+						ToConsole$ = "progcomments\n";
+						}
+					}
+				Case(PROGRAM):
+					{
+					marker1 = find("Program File: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 14);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						Program$ = mid(Tempstring$, marker1 + 14, Marker2 - Marker1 - 14);
+						Marker1 = find(" v", TempString$, Marker1);
+						Marker2 = find(".smw", TempString$, Marker1);
+						Version$ = mid(TempString$, Marker1 + 2, Marker2 - Marker1 - 2);
+						Counter = COMPILED;
+						}
+					}
+				Case(COMPILED):
+					{
+					marker1 = find("Compiled On:  ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 14);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						Compiled$ = mid(Tempstring$, marker1 + 14, Marker2 - Marker1 - 14);
+						Clearbuffer(FromConsole$);
+						Counter = OPTION;
+						ToConsole$ = "Option\n";
+						}
+					}
+				Case(OPTION):
+					{
+					marker1 = find("ADANTO", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 7);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						if(find("ON", Tempstring$, marker1 + 7) > 0)
+							Adanto = 1;
+						else
+							Adanto = 0;
+						Clearbuffer(FromConsole$);
+						Counter = FLASHSIZE;
+						ToConsole$ = "ShowHW\n";
+						}
+					}
+				Case(FLASHSIZE):
+					{
+					marker1 = find("FLASH Total Size:", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 17);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						Makestring(FlashSize$, "%d MB", atoi(mid(Tempstring$, Marker1 + 17, Marker2 - Marker1 - 17))); 
+						Clearbuffer(FromConsole$);
+						cancelallwait();
+						Counter = 0;
+						Busy = 0;
+						BusyInt = 0;
+						}
+					}
+				}
+			}
+		Semaphore = 0;
+		}
+	}
+	
+Function Main()
+	{
+	Semaphore = 0;
+	BusyInt = 0;
+	}

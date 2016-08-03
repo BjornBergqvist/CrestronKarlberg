@@ -1,0 +1,306 @@
+/***********************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+***********************************************************************************/
+/*
+Dealer Name:	Crestron Electronics
+System Name:
+System Number:
+Programmer:		PAC
+Comments:
+*/
+/***********************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+***********************************************************************************/
+#SYMBOL_NAME "Onkyo TX-NR5008 Volume/Tuner Control v1.0"
+// #HINT ""
+#DEFINE_CONSTANT	ciMAXVOLUME	100
+#DEFINE_CONSTANT	ciMINVOLUME	0
+#DEFINE_CONSTANT	ciXMLEN			3
+#DEFINE_CONSTANT	ciSIRIUSLEN	3
+#DEFINE_CONSTANT	ciTUNERLEN	5
+
+#DEFINE_CONSTANT	ciKEYBACK		11
+#DEFINE_CONSTANT	ciKEYCLEAR	12
+#DEFINE_CONSTANT	ciKEYENTER	13
+
+#DEFINE_CONSTANT	ciAM				1
+#DEFINE_CONSTANT	ciFM				2
+#DEFINE_CONSTANT	ciSIRIUS		4
+
+#DEFINE_CONSTANT	csSIRIUS		"!1SCH"
+
+// #CATEGORY "" 
+#DEFAULT_VOLATILE
+// #DEFAULT_NONVOLATILE
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+/***********************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+***********************************************************************************/
+DIGITAL_INPUT	Volume_Up, Volume_Down, Volume_Done,
+							Tuner_Key[13];
+ANALOG_INPUT	Volume_In, Selected_Tuner;
+BUFFER_INPUT	Tuner_Command$[6], Volume_Command$[6];
+
+ANALOG_OUTPUT	Volume_Fb;
+STRING_OUTPUT	Tuner_Frequency$, To_Device$;
+/***********************************************************************************
+  Global Variables
+  (Uncomment and declare global variables as needed)
+  Note:  Be sure to initialize all declared STRING variables as needed
+         For example, in Function Main: myString = "";
+***********************************************************************************/
+INTEGER	iVol, iVolChanging;
+STRING	sFreq[5], sTuner[6], sVolume[6];
+/***********************************************************************************
+  Event Handlers
+  (Uncomment and declare additional event handlers as needed)
+***********************************************************************************/
+PUSH Tuner_Key
+{
+	INTEGER iTemp;
+	
+	iTemp = getlastmodifiedarrayindex();
+	if(iTemp <> 100)
+	{
+		cswitch(Selected_Tuner)
+		{
+			case(ciSIRIUS):
+			{
+				if(iTemp >= 10)
+				{
+					if(iTemp = 10)
+					{
+						if(len(sFreq) < ciSIRIUSLEN)
+						{
+							makestring(sFreq, "%s0", sFreq);
+							Tuner_Frequency$ = sFreq;
+							iTemp = 100;
+						}
+						else
+						{
+							iTemp = 100;
+						}
+					}
+					else if(iTemp = ciKEYBACK)
+					{
+						if(len(sFreq) > 0)
+						{
+							sFreq = left(sFreq, len(sFreq) - 1);
+							Tuner_Frequency$ = sFreq;
+							iTemp = 100;
+						}
+					}
+					else if(iTemp = ciKEYCLEAR)
+					{
+						sFreq = "";
+						Tuner_Frequency$ = sFreq;
+						iTemp = 100;
+					}
+					else if(itemp = ciKEYENTER)
+					{
+						makestring(To_Device$, "%s%03s\r", csSIRIUS, sFreq);
+						sFreq = "";
+						iTemp = 100;
+					}
+					else
+					{
+						iTemp = 100;
+					}
+				}
+				else
+				{
+					if(len(sFreq) < ciSIRIUSLEN)
+					{
+						makestring(sFreq, "%s%d", sFreq, iTemp);
+						Tuner_Frequency$ = sFreq;
+						iTemp = 100;
+					}
+					else
+					{
+						iTemp = 100;
+					}
+				}
+				break;
+			}
+			case(ciAM):
+			{
+				if(iTemp >= 10)
+				{
+					if(iTemp = 10)
+					{
+						if(len(sFreq) < ciTUNERLEN)
+						{
+							makestring(sFreq, "%s0", sFreq);
+							makestring(Tuner_Frequency$, "%s kHz", sFreq);
+							iTemp = 100;
+						}
+						else
+						{
+							iTemp = 100;
+						}
+					}
+					else if(iTemp = ciKEYBACK)
+					{
+						if(len(sFreq) > 0)
+						{
+							sFreq = left(sFreq, len(sFreq) - 1);
+							makestring(Tuner_Frequency$, "%s kHz", sFreq);
+							iTemp = 100;
+						}
+					}
+					else if(iTemp = ciKEYCLEAR)
+					{
+						sFreq = "";
+						Tuner_Frequency$ = sFreq;
+						iTemp = 100;
+					}
+					else if(itemp = ciKEYENTER)
+					{
+						makestring(To_Device$, "%s%05s\r", sTuner, sFreq);
+						sFreq = "";
+						iTemp = 100;
+					}
+				}
+				else
+				{
+					if(len(sFreq) < ciTUNERLEN)
+					{
+						makestring(sFreq, "%s%d", sFreq, iTemp);
+						makestring(Tuner_Frequency$, "%s kHz", sFreq);
+						iTemp = 100;
+					}
+					else
+					{
+						iTemp = 100;
+					}
+				}
+				break;
+			}
+			case(ciFM):
+			{
+				if(iTemp >= 10)
+				{
+					if(iTemp = 10)
+					{
+						if(len(sFreq) < ciTUNERLEN)
+						{
+							makestring(sFreq, "%s0", sFreq);
+							makestring(Tuner_Frequency$, "%s MHz", sFreq);
+							iTemp = 100;
+						}
+						else
+						{
+							iTemp = 100;
+						}
+					}
+					else if(iTemp = ciKEYBACK)
+					{
+						if(len(sFreq) > 0)
+						{
+							sFreq = left(sFreq, len(sFreq) - 1);
+							makestring(Tuner_Frequency$, "%s MHz", sFreq);
+							iTemp = 100;
+						}
+					}
+					else if(iTemp = ciKEYCLEAR)
+					{
+						sFreq = "";
+						Tuner_Frequency$ = sFreq;
+						iTemp = 100;
+					}
+					else if(itemp = ciKEYENTER)
+					{
+						makestring(To_Device$, "%s%05s\r", sTuner, sFreq);
+						sFreq = "";
+						iTemp = 100;
+					}
+					else
+					{
+						iTemp = 100;
+					}
+				}
+				else
+				{
+					if(len(sFreq) < ciTUNERLEN)
+					{
+						makestring(sFreq, "%s%d", sFreq, iTemp);
+						makestring(Tuner_Frequency$, "%s MHz", sFreq);
+						iTemp = 100;
+					}
+					else
+					{
+						iTemp = 100;
+					}
+				}
+				break;
+			}
+			default:
+			{
+				iTemp = 100;
+				break;
+			}
+		}
+	}
+}
+
+PUSH Volume_Up
+{
+	if(iVol	< ciMAXVOLUME)
+	{
+		iVolChanging = 1;
+		iVol = iVol + 1;
+		Volume_Fb = iVol;
+		makestring(To_Device$, "%s%02X\r", sVolume, iVol);
+	}
+}
+
+PUSH Volume_Down
+{
+	if(iVol	> ciMINVOLUME)
+	{
+		iVolChanging = 1;
+		iVol = iVol - 1;
+		Volume_Fb = iVol;
+		makestring(To_Device$, "%s%02X\r", sVolume, iVol);
+	}
+}
+
+RELEASE Volume_Done
+{
+	iVolChanging = 0;
+}
+
+CHANGE Volume_In
+{
+	if((Volume_In <= ciMAXVOLUME) && (Volume_In >= ciMINVOLUME) && (iVolChanging = 0) && (Volume_In <> iVol))
+	{
+		iVol = Volume_In;
+		Volume_Fb = iVol;
+	}
+}
+
+CHANGE Tuner_Command$
+{
+	sTuner = Tuner_Command$;
+}
+
+CHANGE Volume_Command$
+{
+	sVolume = Volume_Command$;
+}
+/***********************************************************************************
+  Main()
+  Uncomment and place one-time startup code here
+  (This code will get called when the system starts up)
+***********************************************************************************/
+Function Main()
+{
+	iVolChanging = 0;
+}

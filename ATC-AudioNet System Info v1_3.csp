@@ -1,0 +1,372 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #SYMBOL_NAME "CEN-TRACK System Info v1_0_0"
+// #HINT ""
+#CATEGORY "0"
+
+#DEFINE_CONSTANT OPS 				1
+#DEFINE_CONSTANT IPA 				2
+#DEFINE_CONSTANT IPM 				3
+#DEFINE_CONSTANT DEFR 				4
+#DEFINE_CONSTANT DHCP				5
+#DEFINE_CONSTANT WINS				6
+#DEFINE_CONSTANT HOSTNAME			7
+#DEFINE_CONSTANT DOMAINNAME 		8
+#DEFINE_CONSTANT MACADDRESS 		9
+#DEFINE_CONSTANT TIME_DATE			10
+#DEFINE_CONSTANT DNS				11
+#DEFINE_CONSTANT PROGRAM 			12
+#DEFINE_CONSTANT COMPILED 			13
+#DEFINE_CONSTANT PEERIPID	 		14
+#DEFINE_CONSTANT PEERIPADDRESS		15
+
+#DEFINE_CONSTANT MAXDNS				8
+
+#DEFINE_CONSTANT FALSE				0
+#DEFINE_CONSTANT TRUE				1
+ 
+#DEFAULT_VOLATILE
+// #DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  Include Libraries
+  (Uncomment and include additional librarys as needed)
+*******************************************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+ANALOG_INPUT Slot;
+STRING_INPUT IPAin$[1000], IPMin$[1000], DefRin$[1000], DHCPin$[1000], HostNamein$[1000], PeerIPTableIn$[1000];
+STRING_INPUT AddDNS$[15], RemoveDNS$[15];
+BUFFER_INPUT FromConsole$[1000]; 
+
+DIGITAL_OUTPUT Busy, Error, DNSUpdateComplete, DNSUpdateInProgress; 
+ANALOG_OUTPUT Progress;
+STRING_OUTPUT Ops$, IPA$, IPM$, DefR$, DHCP$, Mac$, HostName$, PeerIPID$, PeerIPA$, ToConsole$; 
+STRING_OUTPUT DNS$[MAXDNS];
+    
+    
+INTEGER Marker1, Marker2, Marker3, Semaphore, Counter, BusyInt, Count, DNSCounter, DNSUpdateFlag;
+STRING Tempstring$[200];
+STRING Match$[10];
+STRING Match2$[6];
+  
+FUNCTION PeerIPAddressFailed()
+	{
+	Progress = 45500;
+	PeerIPA$ = "000.000.000.000";
+	Counter = HOSTNAME;
+	Makestring(ToConsole$, "intrcon slot %d hostname\n", slot);
+	}					
+
+FUNCTION StartPeerIPAddressWait()
+	{
+	wait(500, PEERIPADDRESSWAIT)
+		{
+		Call PeerIPAddressFailed();
+		}
+	}
+
+FUNCTION PeerIPIDFailed()
+	{
+	Progress = 39000;
+	PeerIPID$ = "0";
+	Counter = PEERIPADDRESS;
+	Makestring(ToConsole$, "intrcon slot %d peeripaddress\n", Slot);
+	Call StartPeerIPAddressWait();
+	}						
+	
+FUNCTION STartPEERIPIDWait()
+	{
+	wait(500, PEERIPIDWAIT)
+		{
+		Call PeerIPIDFailed();
+		}
+	}
+    
+CHANGE Slot
+	{
+	INTEGER i;
+	
+	if((Slot > 0) && (Slot < 4))    
+		{
+		DNSUpdateFlag = FALSE;
+		Progress = 0;
+		Busy = 1;
+		BusyInt = 1;
+		Makestring(Match2$, "\xFB\xFA\xA6%02d ", Slot);
+		for(i = 1 to MAXDNS)
+			DNS$[i] = "";
+		Makestring(ToConsole$, "intrcon slot %d\n", slot);
+		delay(100);
+		Counter = OPS;
+		Makestring(ToConsole$, "intrcon slot %d version\n", slot);
+		wait(3000)
+			{
+			Error = 1;
+			Error = 0;
+			Busy = 0;
+			BusyInt = 0;
+			}
+		}
+	}
+	
+CHANGE FromConsole$
+	{
+	INTEGER Marker;
+
+	if((Semaphore = 0) && (BusyInt = 1))
+		{
+		Semaphore = 1;
+		While(find("\x0D\x0A", FromConsole$) > 0)
+			{
+			TempString$ = remove("\x0D\x0A", FromConsole$);
+			while(find(Match2$, Tempstring$) > 0)
+				{
+				Marker = find(Match2$, Tempstring$);
+				Tempstring$ = left(Tempstring$, Marker - 1) + right(Tempstring$, len(Tempstring$) - Marker - 5);
+				}
+			Switch(Counter)
+				{
+				Case(OPS):
+					{
+					marker1 = find("[", Tempstring$);
+					marker2 = find("]", Tempstring$, Marker1 + 1);
+					if((Marker1 > 0) && (Marker2 > 0))
+						{
+						Progress = 6555;
+						Ops$ = mid(Tempstring$, marker1 + 1, Marker2 - Marker1 - 1);
+						Counter = IPA;
+						Makestring(ToConsole$, "intrcon slot %d fpipa\n", Slot);
+						}
+					}
+				Case(IPA):
+					{
+					marker1 = find("Device 0 IP address: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 21);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						Progress = 13000;
+						IPA$ = mid(Tempstring$, marker1 + 21, Marker2 - Marker1 - 21);
+						Counter = IPM;
+						Makestring(ToConsole$, "intrcon slot %d fpipm\n", Slot);
+						}
+					}
+				Case(IPM):
+					{
+					marker1 = find("Device 0 Subnet Mask: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 22);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						Progress = 19500;
+						IPM$ = mid(Tempstring$, marker1 + 22, Marker2 - Marker1 - 22);
+						Counter = DEFR;
+						Makestring(ToConsole$, "intrcon slot %d fpdefrouter\n", Slot);
+						}
+					}
+				Case(DEFR):
+					{
+					marker1 = find("Default Router: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 16);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						Progress = 26000;
+						DefR$ = mid(Tempstring$, marker1 + 16, Marker2 - Marker1 - 16);
+						Counter = DHCP;
+						Makestring(ToConsole$, "intrcon slot %d dhcp\n", Slot);
+						}
+					}
+				Case(DHCP):
+					{
+					marker1 = find("Current DHCP State: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 20);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						Progress = 32500;
+						DHCP$ = mid(Tempstring$, marker1 + 20, Marker2 - Marker1 - 20);
+						Counter = PEERIPID;
+						Makestring(ToConsole$, "intrcon slot %d peeripid\n", Slot);
+						Call StartPeerIPIDWait();
+						}
+					}
+				Case(PEERIPID):
+					{
+					marker1 = find("Peer IP ID: ", Tempstring$);
+					marker2 = find(" \x0D\x0A", Tempstring$, marker1 + 12);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						Cancelwait(PeerIPIDWait);
+						Progress = 39000;
+						PeerIPID$ = mid(Tempstring$, marker1 + 12, Marker2 - Marker1 - 12);
+						Counter = PEERIPADDRESS;
+						Makestring(ToConsole$, "intrcon slot %d peeripaddress\n", Slot);
+						}
+					}
+				Case(PEERIPADDRESS):
+					{
+					marker1 = find("Peer IP Address: ", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 17);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						cancelwait(PeerIPAddressWait);
+						Progress = 45500;
+						PeerIPA$ = left(mid(Tempstring$, marker1 + 17, Marker2 - Marker1 - 17), 15);
+						Counter = HOSTNAME;
+						Makestring(ToConsole$, "intrcon slot %d hostname\n", slot);
+						}
+					}
+				Case(HOSTNAME):
+					{
+					marker1 = find("Host Name: ", Tempstring$);
+					marker2 = find("\x0D\x0A", TempString$, marker1 + 11);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						Progress = 52000;
+						HostName$ = mid(TempString$, marker1 + 11, marker2 - marker1 - 11);
+						Counter = MACADDRESS;
+						Makestring(ToConsole$, "intrcon slot %d macaddress\n", Slot);
+						}
+					}
+				Case(MACADDRESS):
+					{
+					marker1 = find("MAC address:", Tempstring$);
+					marker2 = find("\x0D\x0A", Tempstring$, marker1 + 12);
+					if((marker1 > 0) && (marker2 > 0)) 
+						{
+						Progress = 58500;
+						Mac$ = mid(Tempstring$, marker1 + 13, Marker2 - Marker1 - 13);
+						Counter = DNS;
+						Count = 0;
+						DNSCounter = 1;
+						delay(100);
+						clearbuffer(FromConsole$);
+						Makestring(ToConsole$, "intrcon slot %d Listdns\n", Slot);
+						}
+					}
+				Case(DNS):
+					{
+					Count = Count + 1;
+					Makestring(Match$, "\x09%d    ", DNSCounter);
+					marker1 = find(Match$, TempString$);
+					marker2 = find("\x0D\x0A", TempString$, Marker1 + 6);
+					if((marker1 > 0) && (marker2 > 0))
+						{
+						DNS$[DNSCounter] = mid(TempString$, Marker1 + 6, marker2 - marker1 - 6);
+						Count = Count - 1;
+						DNSCounter = DNSCounter + 1;
+						}
+					if((Count > 3) || (DNSCounter > MAXDNS))
+						{
+						if(DNSUpdateFlag = FALSE)
+							Progress = 65535;
+						Counter = 0;
+						cancelallwait();
+						Busy = 0;
+						BusyInt = 0;
+						delay(100);
+						Progress = 0;
+						if(DNSUpdateFlag = TRUE)
+							{
+							DNSUpdateFlag = FALSE;
+							DNSUpdateComplete = 1;
+							DNSUpdateComplete = 0;
+							DNSUpdateInProgress = FALSE;
+							}
+						}
+					}
+				}
+			}
+		Semaphore = 0;
+		}
+	}
+
+CHANGE IPAin$
+	{
+		Makestring(ToConsole$, "intrcon slot %d ipa 0 %s\n", Slot, IPAin$);
+	}
+
+CHANGE IPMin$
+	{
+		Makestring(ToConsole$, "intrcon slot %d ipm 0 %s\n", Slot, IPMin$);
+	}
+
+CHANGE Defrin$
+	{
+		Makestring(ToConsole$, "intrcon slot %d defr 0 %s\n", Slot, Defrin$);
+	}
+
+CHANGE DHCPin$
+	{
+		Makestring(ToConsole$, "intrcon slot %d dhcp %s\n", Slot, DHCPin$);
+	}
+
+CHANGE HostNamein$
+	{
+		Makestring(ToConsole$, "intrcon slot %d hostname %s\n", Slot, HostNamein$);
+	}
+	
+CHANGE AddDNS$
+	{
+	INTEGER i;
+	
+	Makestring(ToConsole$, "intrcon slot %d adddns %s\n", Slot, AddDNS$);
+	delay(50);
+	BusyInt = 1;
+	for(i = 1 to MAXDNS)
+		DNS$[i] = "";		
+	DNSUpdateFlag = TRUE;
+	Counter = DNS;
+	Count = 0;
+	DNSCounter = 1;
+	clearbuffer(FromConsole$);
+	DNSUpdateInProgress = TRUE;
+	Makestring(ToConsole$, "intrcon slot %d Listdns\n", Slot);				
+	}
+	
+CHANGE RemoveDNS$
+	{
+	INTEGER i;
+	
+	Makestring(ToConsole$, "intrcon slot %d remdns %s\n", Slot, RemoveDNS$);
+	delay(50);
+	BusyInt = 1;
+	for(i = 1 to MAXDNS)
+		DNS$[i] = "";		
+	DNSUpdateFlag = TRUE;
+	Counter = DNS;
+	Count = 0;
+	DNSCounter = 1;
+	clearbuffer(FromConsole$);
+	DNSUpdateInProgress = TRUE;
+	Makestring(ToConsole$, "intrcon slot %d Listdns\n", Slot);				
+	}
+
+Function Main()
+	{
+	Semaphore = 0;
+	BusyInt = 0;
+	}

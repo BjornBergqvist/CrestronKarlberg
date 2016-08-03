@@ -1,0 +1,611 @@
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+ram              0x80000000         0x00500000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x00000000                __DYNAMIC=0x0
+                0x00400000                PROVIDE (__stack, 0x400000)
+                0x00000000                PROVIDE (hardware_init_hook, 0x0)
+                0x00000000                PROVIDE (_hardware_init_hook, 0x0)
+                0x00000000                PROVIDE (software_init_hook, 0x0)
+                0x00000000                PROVIDE (_software_init_hook, 0x0)
+
+.text           0x80000000    0x53050
+ *(.text)
+ .text          0x80000000      0x28e S2_Serial_to_Digital.o
+                0x800001f8                S2_Serial_to_DigitalEventHandler00000
+                0x8000016a                S2_Serial_to_Digital_main
+                0x800000bc                S2_Serial_to_DigitalW_ASTRING
+                0x80000000                S2_Serial_to_Digital_EventHandler
+ *fill*         0x8000028e        0x2
+ .text          0x80000290     0x1aca S2_Onkyo_TX_NR5008_Processor_v1_0.o
+                0x80001738                S2_Onkyo_TX_NR5008_Processor_v1_0_main
+                0x80001bc6                S2_Onkyo_TX_NR5008_Processor_v1_0EventHandler00005
+                0x80001c90                S2_Onkyo_TX_NR5008_Processor_v1_0EventHandler00006
+                0x80000290                S2_Onkyo_TX_NR5008_Processor_v1_0EventHandler00000
+                0x80001ab4                S2_Onkyo_TX_NR5008_Processor_v1_0EventHandler00003
+                0x8000187a                S2_Onkyo_TX_NR5008_Processor_v1_0EventHandler00001
+                0x80001622                S2_Onkyo_TX_NR5008_Processor_v1_0_EventHandler
+                0x80001af0                S2_Onkyo_TX_NR5008_Processor_v1_0EventHandler00004
+                0x8000199a                S2_Onkyo_TX_NR5008_Processor_v1_0EventHandler00002
+ *fill*         0x80001d5a        0x2
+ .text          0x80001d5c     0x669c S2_Onkyo_TX_NR5008_Feedback_v1_0.o
+                0x80007e02                S2_Onkyo_TX_NR5008_Feedback_v1_0_main
+                0x80008294                S2_Onkyo_TX_NR5008_Feedback_v1_0WNETDELAY
+                0x80008396                S2_Onkyo_TX_NR5008_Feedback_v1_0EventHandler00001
+                0x80001d5c                S2_Onkyo_TX_NR5008_Feedback_v1_0EventHandler00002
+                0x80007cde                S2_Onkyo_TX_NR5008_Feedback_v1_0_EventHandler
+                0x80002998                S2_Onkyo_TX_NR5008_Feedback_v1_0EventHandler00003
+                0x80008342                S2_Onkyo_TX_NR5008_Feedback_v1_0EventHandler00000
+ .text          0x800083f8      0xe48 S2_Knob_Acceleration__Pkt_.o
+                0x80008d6c                S2_Knob_Acceleration__Pkt__main
+                0x800089fa                S2_Knob_Acceleration__Pkt_EventHandler00000
+                0x80008c8e                S2_Knob_Acceleration__Pkt__EventHandler
+ .text          0x80009240     0x2520 S2_AES_OOTBF_Source_Mode_v1_1.o
+                0x80009936                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00000
+                0x8000b438                S2_AES_OOTBF_Source_Mode_v1_1_main
+                0x8000a562                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00004
+                0x80009ef4                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00002
+                0x8000b320                S2_AES_OOTBF_Source_Mode_v1_1_EventHandler
+                0x8000b666                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00008
+                0x8000b59e                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00007
+                0x8000a83a                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00005
+                0x8000b000                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00009
+                0x8000ac5e                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00006
+                0x80009cd6                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00001
+                0x8000a112                S2_AES_OOTBF_Source_Mode_v1_1EventHandler00003
+ .text          0x8000b760     0xa81e S2_AES_OOTBF_Room_Mode_v1_2.o
+                0x800156f2                S2_AES_OOTBF_Room_Mode_v1_2_main
+                0x80015d88                S2_AES_OOTBF_Room_Mode_v1_2EventHandler0000F
+                0x8000fcae                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00003
+                0x80014516                S2_AES_OOTBF_Room_Mode_v1_2EventHandler0000E
+                0x80013540                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00006
+                0x80015582                S2_AES_OOTBF_Room_Mode_v1_2_EventHandler
+                0x80015cae                S2_AES_OOTBF_Room_Mode_v1_2SOURCECONTROLWAIT
+                0x80015e9a                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00010
+                0x80013996                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00008
+                0x8000f166                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00000
+                0x80012c8c                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00004
+                0x80013f0e                S2_AES_OOTBF_Room_Mode_v1_2EventHandler0000C
+                0x80013686                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00007
+                0x80015cec                S2_AES_OOTBF_Room_Mode_v1_2EventHandler0000D
+                0x80013c18                S2_AES_OOTBF_Room_Mode_v1_2EventHandler0000A
+                0x8001468c                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00011
+                0x80013ae4                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00009
+                0x8000f4b8                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00001
+                0x8000f810                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00002
+                0x800132bc                S2_AES_OOTBF_Room_Mode_v1_2EventHandler00005
+                0x80013da0                S2_AES_OOTBF_Room_Mode_v1_2EventHandler0000B
+ *fill*         0x80015f7e        0x2
+ .text          0x80015f80      0xd1a S2_Knob_Acceleration__Sleep_Timer__v1_0.o
+                0x800167c6                S2_Knob_Acceleration__Sleep_Timer__v1_0_main
+                0x80016454                S2_Knob_Acceleration__Sleep_Timer__v1_0EventHandler00000
+                0x800166e8                S2_Knob_Acceleration__Sleep_Timer__v1_0_EventHandler
+ *fill*         0x80016c9a        0x2
+ .text          0x80016c9c      0x6fa S2_Adagio_Group_Editor_v1_0_1.o
+                0x80016f78                S2_Adagio_Group_Editor_v1_0_1EventHandler00001
+                0x80016c9c                S2_Adagio_Group_Editor_v1_0_1EventHandler00000
+                0x8001720c                S2_Adagio_Group_Editor_v1_0_1_EventHandler
+                0x800172ea                S2_Adagio_Group_Editor_v1_0_1_main
+ *fill*         0x80017396        0x2
+ .text          0x80017398     0x1156 S2_AES_OOTBF_Group_Source_Selector_v1_0.o
+                0x80017d84                S2_AES_OOTBF_Group_Source_Selector_v1_0EventHandler00003
+                0x800182f6                S2_AES_OOTBF_Group_Source_Selector_v1_0_EventHandler
+                0x800184a4                S2_AES_OOTBF_Group_Source_Selector_v1_0EventHandler00001
+                0x800178f2                S2_AES_OOTBF_Group_Source_Selector_v1_0EventHandler00000
+                0x80018068                S2_AES_OOTBF_Group_Source_Selector_v1_0EventHandler00005
+                0x80017ef6                S2_AES_OOTBF_Group_Source_Selector_v1_0EventHandler00004
+                0x80017c14                S2_AES_OOTBF_Group_Source_Selector_v1_0EventHandler00002
+                0x800183d4                S2_AES_OOTBF_Group_Source_Selector_v1_0_main
+ *fill*         0x800184ee        0x2
+ .text          0x800184f0     0x1eba S2_APAD_Text_Edit.o
+                0x80018f78                S2_APAD_Text_EditEventHandler00005
+                0x80019fe2                S2_APAD_Text_EditEventHandler00002
+                0x80019c10                S2_APAD_Text_Edit_EventHandler
+                0x8001a2e2                S2_APAD_Text_EditEventHandler0000C
+                0x8001a2a6                S2_APAD_Text_EditEventHandler0000B
+                0x8001953c                S2_APAD_Text_EditEventHandler00007
+                0x80018d42                S2_APAD_Text_EditEventHandler00004
+                0x80019224                S2_APAD_Text_EditEventHandler00006
+                0x80019cdc                S2_APAD_Text_Edit_main
+                0x80019f42                S2_APAD_Text_EditEventHandler00001
+                0x8001a26a                S2_APAD_Text_EditEventHandler0000A
+                0x8001a0aa                S2_APAD_Text_EditEventHandler00003
+                0x8001a162                S2_APAD_Text_EditEventHandler00008
+                0x80019922                S2_APAD_Text_EditEventHandler00009
+                0x80019ea2                S2_APAD_Text_EditEventHandler00000
+ *fill*         0x8001a3aa        0x2
+ .text          0x8001a3ac      0x744 S2_AADS_OOTBF_Text_Scroller_v1.o
+                0x8001a3ac                S2_AADS_OOTBF_Text_Scroller_v1STOPSCROLLWAIT
+                0x8001a952                S2_AADS_OOTBF_Text_Scroller_v1_EventHandler
+                0x8001a764                S2_AADS_OOTBF_Text_Scroller_v1EventHandler00001
+                0x8001a4ac                S2_AADS_OOTBF_Text_Scroller_v1EventHandler00000
+                0x8001aa30                S2_AADS_OOTBF_Text_Scroller_v1STARTSCROLLWAIT
+                0x8001aa7c                S2_AADS_OOTBF_Text_Scroller_v1_main
+ .text          0x8001aaf0     0x382c S2_AES_Installer_Tools_Small_v1_1.o
+                0x8001dce6                S2_AES_Installer_Tools_Small_v1_1EventHandler00004
+                0x8001e1f8                S2_AES_Installer_Tools_Small_v1_1EventHandler00000
+                0x8001d9bc                S2_AES_Installer_Tools_Small_v1_1EventHandler00002
+                0x8001e288                S2_AES_Installer_Tools_Small_v1_1EventHandler00005
+                0x8001e006                S2_AES_Installer_Tools_Small_v1_1_main
+                0x8001db42                S2_AES_Installer_Tools_Small_v1_1EventHandler00003
+                0x8001df66                S2_AES_Installer_Tools_Small_v1_1_EventHandler
+                0x8001e2d2                S2_AES_Installer_Tools_Small_v1_1EventHandler00006
+                0x8001d81e                S2_AES_Installer_Tools_Small_v1_1EventHandler00001
+ .text          0x8001e31c     0x2202 S2_Adagio_System_Info_v1_1.o
+                0x8001e31c                S2_Adagio_System_Info_v1_1EventHandler00000
+                0x800202c0                S2_Adagio_System_Info_v1_1_EventHandler
+                0x8002044e                S2_Adagio_System_Info_v1_1_main
+                0x8002039a                S2_Adagio_System_Info_v1_1__SPLS_TMPVAR__WAITLABEL_0__
+                0x8001e5ba                S2_Adagio_System_Info_v1_1EventHandler00001
+ *fill*         0x8002051e        0x2
+ .text          0x80020520     0xd7ec S2_Installer_Tools___AudioNet_Setup_v4.o
+                0x8002db6a                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00008
+                0x8002d952                S2_Installer_Tools___AudioNet_Setup_v4_STACK_Constructor
+                0x80026c62                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00004
+                0x8002c8bc                S2_Installer_Tools___AudioNet_Setup_v4EventHandler0000C
+                0x8002da00                S2_Installer_Tools___AudioNet_Setup_v4RETRIEVINGWAIT
+                0x8002ce56                S2_Installer_Tools___AudioNet_Setup_v4EventHandler0000E
+                0x80029eae                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00005
+                0x8002daa4                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00007
+                0x8002da4e                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00001
+                0x8002697e                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00002
+                0x8002dcc2                S2_Installer_Tools___AudioNet_Setup_v4EventHandler0000D
+                0x8002d95c                S2_Installer_Tools___AudioNet_Setup_v4_STACK_Destructor
+                0x8002d0d2                S2_Installer_Tools___AudioNet_Setup_v4_EventHandler
+                0x80026af4                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00003
+                0x8002ad1a                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00009
+                0x8002d244                S2_Installer_Tools___AudioNet_Setup_v4_main
+                0x8002a106                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00006
+                0x8002c642                S2_Installer_Tools___AudioNet_Setup_v4EventHandler0000B
+                0x8002d966                S2_Installer_Tools___AudioNet_Setup_v4__SPLS_TMPVAR__WAITLABEL_0__
+                0x800267d2                S2_Installer_Tools___AudioNet_Setup_v4EventHandler00000
+                0x8002dbea                S2_Installer_Tools___AudioNet_Setup_v4EventHandler0000A
+ .text          0x8002dd0c     0x2198 S2_Installer_Tools___Network___Hostname_Edit_v2.o
+                0x8002e55a                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00000
+                0x8002f068                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00007
+                0x8002fb64                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00008
+                0x8002fcfe                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler0000C
+                0x8002fdbc                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler0000D
+                0x8002f816                S2_Installer_Tools___Network___Hostname_Edit_v2_main
+                0x8002f442                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00009
+                0x8002facc                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00003
+                0x8002e80e                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00004
+                0x8002e6b4                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00001
+                0x8002f730                S2_Installer_Tools___Network___Hostname_Edit_v2_EventHandler
+                0x8002ec98                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00006
+                0x8002fcc2                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler0000B
+                0x8002fc86                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler0000A
+                0x8002ea70                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00005
+                0x8002fa0a                S2_Installer_Tools___Network___Hostname_Edit_v2EventHandler00002
+ .text          0x8002fea4     0x131c S2_Adagio_OOTBF_Group_Evaluator_v1.o
+                0x80030fbc                S2_Adagio_OOTBF_Group_Evaluator_v1_EventHandler
+                0x80031176                S2_Adagio_OOTBF_Group_Evaluator_v1EventHandler00000
+                0x80031092                S2_Adagio_OOTBF_Group_Evaluator_v1_main
+ .text          0x800311c0     0xff9a S2_AES_OOTBF_XML_Functions_v2_0_0.o
+                0x80040f14                S2_AES_OOTBF_XML_Functions_v2_0_0_SYSTEM_Constructor
+                0x800405ae                S2_AES_OOTBF_XML_Functions_v2_0_0_EventHandler
+                0x80040f00                S2_AES_OOTBF_XML_Functions_v2_0_0_DEVICE_Constructor
+                0x80040784                S2_AES_OOTBF_XML_Functions_v2_0_0_main
+                0x80040e4e                S2_AES_OOTBF_XML_Functions_v2_0_0_SOURCE_Constructor
+                0x8003fa56                S2_AES_OOTBF_XML_Functions_v2_0_0EventHandler00001
+                0x80040ea6                S2_AES_OOTBF_XML_Functions_v2_0_0_SOURCE_Destructor
+                0x80041082                S2_AES_OOTBF_XML_Functions_v2_0_0EventHandler00006
+                0x80040f0a                S2_AES_OOTBF_XML_Functions_v2_0_0_DEVICE_Destructor
+                0x80040f66                S2_AES_OOTBF_XML_Functions_v2_0_0_INTERFACE_Destructor
+                0x80040eb0                S2_AES_OOTBF_XML_Functions_v2_0_0_GROUP_Constructor
+                0x80040f3c                S2_AES_OOTBF_XML_Functions_v2_0_0_SYSTEM_Destructor
+                0x80040382                S2_AES_OOTBF_XML_Functions_v2_0_0EventHandler00005
+                0x8003ff80                S2_AES_OOTBF_XML_Functions_v2_0_0EventHandler00003
+                0x80040e44                S2_AES_OOTBF_XML_Functions_v2_0_0_ROOM_Destructor
+                0x80040f46                S2_AES_OOTBF_XML_Functions_v2_0_0_INTERFACE_Constructor
+                0x8004023e                S2_AES_OOTBF_XML_Functions_v2_0_0EventHandler00004
+                0x80040ef6                S2_AES_OOTBF_XML_Functions_v2_0_0_GROUP_Destructor
+                0x8003fd2c                S2_AES_OOTBF_XML_Functions_v2_0_0EventHandler00002
+                0x80040e02                S2_AES_OOTBF_XML_Functions_v2_0_0_ROOM_Constructor
+                0x80040f70                S2_AES_OOTBF_XML_Functions_v2_0_0EventHandler00000
+ *fill*         0x8004115a        0x2
+ .text          0x8004115c     0x13ce S2_Adagio_OOTBF_Priority_Processor_v1.o
+                0x8004228a                S2_Adagio_OOTBF_Priority_Processor_v1_EventHandler
+                0x800423e2                S2_Adagio_OOTBF_Priority_Processor_v1_main
+                0x800412e2                S2_Adagio_OOTBF_Priority_Processor_v1EventHandler00000
+                0x80041c7e                S2_Adagio_OOTBF_Priority_Processor_v1EventHandler00003
+                0x800416f0                S2_Adagio_OOTBF_Priority_Processor_v1EventHandler00002
+                0x800415f2                S2_Adagio_OOTBF_Priority_Processor_v1EventHandler00001
+ *fill*         0x8004252a        0x2
+ .text          0x8004252c      0xd24 S2_Multiple_Now_Playing_Combiner__10__v2.o
+                0x80043034                S2_Multiple_Now_Playing_Combiner__10__v2EventHandler00000
+                0x80042dcc                S2_Multiple_Now_Playing_Combiner__10__v2_main
+                0x800430ac                S2_Multiple_Now_Playing_Combiner__10__v2EventHandler00001
+                0x8004319c                S2_Multiple_Now_Playing_Combiner__10__v2EventHandler00003
+                0x80043124                S2_Multiple_Now_Playing_Combiner__10__v2EventHandler00002
+                0x80042c84                S2_Multiple_Now_Playing_Combiner__10__v2_EventHandler
+ .text          0x80043250     0x35e6 S2_ATC_Audionet_System_Info_v1_3.o
+                0x800466ce                S2_ATC_Audionet_System_Info_v1_3EventHandler00005
+                0x800463c0                S2_ATC_Audionet_System_Info_v1_3PEERIPIDWAIT
+                0x80043622                S2_ATC_Audionet_System_Info_v1_3EventHandler00000
+                0x800464b2                S2_ATC_Audionet_System_Info_v1_3EventHandler00002
+                0x80043a74                S2_ATC_Audionet_System_Info_v1_3EventHandler00001
+                0x8004661a                S2_ATC_Audionet_System_Info_v1_3EventHandler00004
+                0x80046102                S2_ATC_Audionet_System_Info_v1_3_main
+                0x80046782                S2_ATC_Audionet_System_Info_v1_3EventHandler00006
+                0x80046566                S2_ATC_Audionet_System_Info_v1_3EventHandler00003
+                0x80045bf6                S2_ATC_Audionet_System_Info_v1_3EventHandler00008
+                0x800463fe                S2_ATC_Audionet_System_Info_v1_3__SPLS_TMPVAR__WAITLABEL_0__
+                0x80045892                S2_ATC_Audionet_System_Info_v1_3EventHandler00007
+                0x80046058                S2_ATC_Audionet_System_Info_v1_3_EventHandler
+                0x80046382                S2_ATC_Audionet_System_Info_v1_3PEERIPADDRESSWAIT
+ *fill*         0x80046836        0x2
+ .text          0x80046838     0x5836 library.o
+                0x8004aa24                RotateRightLong
+                0x8004b032                IsSystem
+                0x8004a988                Seed
+                0x80048280                Remove
+                0x8004a604                Ltoa
+                0x8004a330                Atoi
+                0x80049698                InitRampInfoArray
+                0x8004adde                Right
+                0x8004be0e                LockInputSema
+                0x8004a8b2                Mod
+                0x8004aa9a                Getc
+                0x8004a7e6                SMuldiv
+                0x8004b014                IsHidden
+                0x8004a6ca                Min
+                0x8004bc22                hextosi
+                0x8004b1b8                WriteIntegerArray
+                0x8004b72e                GetSignedIntArrayElementPtr
+                0x8004a052                CheckStructArray
+                0x8004bc36                hextosl
+                0x8004b33e                WriteSignedIntegerArray
+                0x80049d1a                InitStringParamArray
+                0x80048fec                ReadSignedLongIntegerArray
+                0x80047f0e                GatherToDelimiter
+                0x80049b3e                InitStringArray
+                0x8004a6a4                Max
+                0x8004b06e                IsReadOnly
+                0x8004a7ae                SMax
+                0x800480b2                GatherByLength
+                0x8004a53e                Chr
+                0x8004b190                ReadSignedLongInteger
+                0x8004a5bc                Itohex
+                0x80049fc4                GetStructArrayElement
+                0x8004a2b8                UNS_SetByte
+                0x8004adb2                ReverseFindi
+                0x80049494                ReadStringArray
+                0x8004b53e                GetIntArrayElementPtr
+                0x8004abee                Lower
+                0x8004a9a4                RotateLeft
+                0x8004bd56                ResizeIfAutogrow
+                0x800497c4                CheckInputArray
+                0x80046da6                ResizeStringArray
+                0x8004a4d0                Atosl
+                0x8004a2f8                High
+                0x8004a954                Rnd
+                0x8004a876                UMod
+                0x8004a9fa                RotateLeftLong
+                0x8004be82                FindNumericChar
+                0x8004b986                CheckIOArrayBounds2
+                0x8004afcc                MakeProgramFilename
+                0x8004a7ca                SMin
+                0x8004ab22                Left
+                0x8004aa64                CheckBufferThreshold
+                0x8004b148                ReadSignedInteger
+                0x8004a322                LowWord
+                0x80046838                Bit
+                0x8004b0f8                ReadLongInteger
+                0x8004a136                Byte
+                0x8004b636                GetLongArrayElementPtr
+                0x8004ad84                ReverseFind
+                0x8004afe2                GetSeries
+                0x8004bf4e                InitTcpServer
+                0x8004abd6                Len
+                0x8004ba56                InitializeRampInfoInternal
+                0x8004a6f0                Divide
+                0x8004a43c                Atol
+                0x8004afd8                GetModelNumber
+                0x8004b91e                CheckIOArrayBounds
+                0x8004981e                CheckStringInputArray
+                0x8004b400                WriteSignedLongIntegerArray
+                0x80049f0e                GetStringArrayElement
+                0x8004a648                Ltohex
+                0x8004a574                Itoa
+                0x8004a9ce                RotateRight
+                0x8004856e                InternalReverseFind
+                0x8004b0d8                WriteLongInteger
+                0x80049a42                InitDynamicStringStruct
+                0x80049934                SetStringArray
+                0x80048dca                ReadSignedIntegerArray
+                0x80049878                SetOutputArray
+                0x8004b088                WriteInteger
+                0x80049ea2                InitStructDynamicArray
+                0x800487f8                SetString
+                0x8004a8ee                Random
+                0x8004b120                WriteSignedInteger
+                0x80046a9c                Find
+                0x8004afec                GetProgramNumber
+                0x8004acc2                Mid
+                0x8004bec0                InitTcpClient
+                0x8004798a                ResizeStructArray
+                0x8004b826                GetSignedLongArrayElementPtr
+                0x8004bc48                hextol
+                0x8004920e                ReadString
+                0x80049bd4                InitDynamicStringArray
+                0x8004bd2e                UpperChar
+                0x8004a3cc                Atosi
+                0x8004b0b0                ReadInteger
+                0x8004a762                Muldiv
+                0x800498e6                SetStringOutputArray
+                0x8004b4c4                WriteString
+                0x800473fe                ResizeIntegerArray
+                0x8004978c                InitInOutArray
+                0x80049de2                InitNvramStringArray
+                0x8004a68c                Abs
+                0x8004a832                SDivide
+                0x80048988                ReadIntegerArray
+                0x80046948                CompareStrings
+                0x8004bd06                LowerChar
+                0x8004bfde                InitUdpSocket
+                0x8004aa4c                ClearBuffer
+                0x8004ae9a                Upper
+                0x80049e7e                InitStructArray
+                0x8004af70                MakeLower
+                0x8004b050                IsVolume
+                0x800483da                RemoveByLength
+                0x8004a0ce                CheckStringOutputArrayIndex
+                0x8004b27a                WriteLongIntegerArray
+                0x8004bb02                InitRampInfoStructArray
+                0x8004a314                HighWord
+                0x80046c10                ResizeString
+                0x8004aff6                IsDirectory
+                0x80048ba8                ReadLongIntegerArray
+                0x8004a306                Low
+                0x80047db4                Gather
+                0x8004af9e                MakeUpper
+                0x80049a04                InitStringStruct
+                0x8004b9ee                CheckStringArrayBounds
+                0x8004a734                CheckDenominator
+                0x8004bc0a                hextoi
+                0x8004932c                WriteStringArray
+                0x8004a1f6                SetByte
+                0x8004baac                InitializeRampInfo
+                0x8004be48                UnLockInputSema
+                0x8004b170                WriteSignedLongInteger
+                0x80049af6                InitNvramStringStruct
+ *fill*         0x8004c06e        0x2
+                0x8004c070                .=ALIGN(0x10)
+ *(.eh_frame)
+                0x8004c070                .=ALIGN(0x10)
+ *(.gnu.linkonce.t.*)
+                0x8004c070                .=ALIGN(0x4)
+                0x8004c070                __CTOR_LIST__=.
+                0x8004c070                ___CTOR_LIST__=.
+                0x8004c070        0x4 LONG 0x0 (((__CTOR_END__-__CTOR_LIST__)/0x4)-0x2)
+ *(.ctors)
+                0x8004c074        0x4 LONG 0x0
+                0x8004c078                __CTOR_END__=.
+                0x8004c078                __DTOR_LIST__=.
+                0x8004c078                ___DTOR_LIST__=.
+                0x8004c078        0x4 LONG 0x0 (((__DTOR_END__-__DTOR_LIST__)/0x4)-0x2)
+ *(.dtors)
+                0x8004c07c        0x4 LONG 0x0
+                0x8004c080                __DTOR_END__=.
+ *(.rodata)
+ .rodata        0x8004c080      0x243 S2_Serial_to_Digital.o
+ .rodata        0x8004c2c3      0x338 S2_Onkyo_TX_NR5008_Processor_v1_0.o
+ .rodata        0x8004c5fb      0x8b2 S2_Onkyo_TX_NR5008_Feedback_v1_0.o
+ .rodata        0x8004cead      0x3fb S2_Knob_Acceleration__Pkt_.o
+ .rodata        0x8004d2a8      0x327 S2_AES_OOTBF_Source_Mode_v1_1.o
+ .rodata        0x8004d5cf      0x67d S2_AES_OOTBF_Room_Mode_v1_2.o
+ .rodata        0x8004dc4c      0x2d2 S2_Knob_Acceleration__Sleep_Timer__v1_0.o
+ .rodata        0x8004df1e      0x23f S2_Adagio_Group_Editor_v1_0_1.o
+ .rodata        0x8004e15d      0x330 S2_AES_OOTBF_Group_Source_Selector_v1_0.o
+ .rodata        0x8004e48d      0x3b7 S2_APAD_Text_Edit.o
+ .rodata        0x8004e844      0x2aa S2_AADS_OOTBF_Text_Scroller_v1.o
+ .rodata        0x8004eaee      0x62a S2_AES_Installer_Tools_Small_v1_1.o
+ .rodata        0x8004f118      0x665 S2_Adagio_System_Info_v1_1.o
+ .rodata        0x8004f77d      0x76f S2_Installer_Tools___AudioNet_Setup_v4.o
+ .rodata        0x8004feec      0x3b9 S2_Installer_Tools___Network___Hostname_Edit_v2.o
+ .rodata        0x800502a5      0x2e0 S2_Adagio_OOTBF_Group_Evaluator_v1.o
+ .rodata        0x80050585     0x109f S2_AES_OOTBF_XML_Functions_v2_0_0.o
+ .rodata        0x80051624      0x2dc S2_Adagio_OOTBF_Priority_Processor_v1.o
+ .rodata        0x80051900      0x395 S2_Multiple_Now_Playing_Combiner__10__v2.o
+ .rodata        0x80051c95      0x750 S2_ATC_Audionet_System_Info_v1_3.o
+ .rodata        0x800523e5      0xc54 library.o
+ *(.gcc_except_table)
+ *fill*         0x80053039        0x1
+                0x8005303a                .=ALIGN(0x2)
+                0x8005303a                __INIT_SECTION__=.
+                0x8005303a        0x4 LONG 0x4e560000
+ *(.init)
+                0x8005303e        0x2 SHORT 0x4e5e
+                0x80053040        0x2 SHORT 0x4e75
+                0x80053042                __FINI_SECTION__=.
+                0x80053042        0x4 LONG 0x4e560000
+ *(.fini)
+                0x80053046        0x2 SHORT 0x4e5e
+                0x80053048        0x2 SHORT 0x4e75
+ *(.lit)
+ *fill*         0x8005304a        0x6
+                0x80053050                .=ALIGN(0x10)
+                0x80053050                _etext=.
+                0x80053050                etext=.
+
+.data           0x80053050        0x0
+                0x80053050                copy_start=.
+ *(.shdata)
+ *(.data)
+ *(.gnu.linkonce.d.*)
+                0x80053050                .=ALIGN(0x10)
+                0x80053050                _edata=.
+                0x80053050                copy_end=.
+
+.got
+ *(.got.plt)
+ *(.got)
+
+EntryList       0x80053050     0x1540
+ *(EntryList)
+ EntryList      0x80053050      0x110 S2_Serial_to_Digital.o
+                0x80053050                S2_Serial_to_Digital_Entry
+ EntryList      0x80053160      0x110 S2_Onkyo_TX_NR5008_Processor_v1_0.o
+                0x80053160                S2_Onkyo_TX_NR5008_Processor_v1_0_Entry
+ EntryList      0x80053270      0x110 S2_Onkyo_TX_NR5008_Feedback_v1_0.o
+                0x80053270                S2_Onkyo_TX_NR5008_Feedback_v1_0_Entry
+ EntryList      0x80053380      0x110 S2_Knob_Acceleration__Pkt_.o
+                0x80053380                S2_Knob_Acceleration__Pkt__Entry
+ EntryList      0x80053490      0x110 S2_AES_OOTBF_Source_Mode_v1_1.o
+                0x80053490                S2_AES_OOTBF_Source_Mode_v1_1_Entry
+ EntryList      0x800535a0      0x110 S2_AES_OOTBF_Room_Mode_v1_2.o
+                0x800535a0                S2_AES_OOTBF_Room_Mode_v1_2_Entry
+ EntryList      0x800536b0      0x110 S2_Knob_Acceleration__Sleep_Timer__v1_0.o
+                0x800536b0                S2_Knob_Acceleration__Sleep_Timer__v1_0_Entry
+ EntryList      0x800537c0      0x110 S2_Adagio_Group_Editor_v1_0_1.o
+                0x800537c0                S2_Adagio_Group_Editor_v1_0_1_Entry
+ EntryList      0x800538d0      0x110 S2_AES_OOTBF_Group_Source_Selector_v1_0.o
+                0x800538d0                S2_AES_OOTBF_Group_Source_Selector_v1_0_Entry
+ EntryList      0x800539e0      0x110 S2_APAD_Text_Edit.o
+                0x800539e0                S2_APAD_Text_Edit_Entry
+ EntryList      0x80053af0      0x110 S2_AADS_OOTBF_Text_Scroller_v1.o
+                0x80053af0                S2_AADS_OOTBF_Text_Scroller_v1_Entry
+ EntryList      0x80053c00      0x110 S2_AES_Installer_Tools_Small_v1_1.o
+                0x80053c00                S2_AES_Installer_Tools_Small_v1_1_Entry
+ EntryList      0x80053d10      0x110 S2_Adagio_System_Info_v1_1.o
+                0x80053d10                S2_Adagio_System_Info_v1_1_Entry
+ EntryList      0x80053e20      0x110 S2_Installer_Tools___AudioNet_Setup_v4.o
+                0x80053e20                S2_Installer_Tools___AudioNet_Setup_v4_Entry
+ EntryList      0x80053f30      0x110 S2_Installer_Tools___Network___Hostname_Edit_v2.o
+                0x80053f30                S2_Installer_Tools___Network___Hostname_Edit_v2_Entry
+ EntryList      0x80054040      0x110 S2_Adagio_OOTBF_Group_Evaluator_v1.o
+                0x80054040                S2_Adagio_OOTBF_Group_Evaluator_v1_Entry
+ EntryList      0x80054150      0x110 S2_AES_OOTBF_XML_Functions_v2_0_0.o
+                0x80054150                S2_AES_OOTBF_XML_Functions_v2_0_0_Entry
+ EntryList      0x80054260      0x110 S2_Adagio_OOTBF_Priority_Processor_v1.o
+                0x80054260                S2_Adagio_OOTBF_Priority_Processor_v1_Entry
+ EntryList      0x80054370      0x110 S2_Multiple_Now_Playing_Combiner__10__v2.o
+                0x80054370                __v2_Entry::S2_Multiple_Now_Playing_Combiner(void)
+ EntryList      0x80054480      0x110 S2_ATC_Audionet_System_Info_v1_3.o
+                0x80054480                S2_ATC_Audionet_System_Info_v1_3_Entry
+                0x80054590                .=ALIGN(0x4)
+
+FunctionList    0x80054590        0x4
+ *(FunctionList)
+ FunctionList   0x80054590        0x4 globals.o
+                0x80054590                g_pFunctions
+                0x80054594                .=ALIGN(0x4)
+
+.bss            0x80054594        0x0
+                0x80054594                .=ALIGN(0x4)
+                0x80054594                __bss_start=.
+ *(.shbss)
+ *(.bss)
+ *(COMMON)
+                0x80054598                _end=ALIGN(0x8)
+                0x80054598                __end=_end
+
+.stab
+ *(.stab)
+
+.stabstr
+ *(.stabstr)
+
+.debug
+ *(.debug)
+
+.line
+ *(.line)
+
+.debug_srcinfo
+ *(.debug_srcinfo)
+
+.debug_sfnames
+ *(.debug_sfnames)
+
+.debug_aranges
+ *(.debug_aranges)
+
+.debug_pubnames
+ *(.debug_pubnames)
+
+.debug_info
+ *(.debug_info)
+
+.debug_abbrev
+ *(.debug_abbrev)
+
+.debug_line
+ *(.debug_line)
+
+.debug_frame
+ *(.debug_frame)
+
+.debug_str
+ *(.debug_str)
+
+.debug_loc
+ *(.debug_loc)
+
+.debug_macinfo
+ *(.debug_macinfo)
+
+.debug_weaknames
+ *(.debug_weaknames)
+
+.debug_funcnames
+ *(.debug_funcnames)
+
+.debug_typenames
+ *(.debug_typenames)
+
+.debug_varnames
+ *(.debug_varnames)
+LOAD S2_Serial_to_Digital.o
+LOAD S2_Onkyo_TX_NR5008_Processor_v1_0.o
+LOAD S2_Onkyo_TX_NR5008_Feedback_v1_0.o
+LOAD S2_Knob_Acceleration__Pkt_.o
+LOAD S2_AES_OOTBF_Source_Mode_v1_1.o
+LOAD S2_AES_OOTBF_Room_Mode_v1_2.o
+LOAD S2_Knob_Acceleration__Sleep_Timer__v1_0.o
+LOAD S2_Adagio_Group_Editor_v1_0_1.o
+LOAD S2_AES_OOTBF_Group_Source_Selector_v1_0.o
+LOAD S2_APAD_Text_Edit.o
+LOAD S2_AADS_OOTBF_Text_Scroller_v1.o
+LOAD S2_AES_Installer_Tools_Small_v1_1.o
+LOAD S2_Adagio_System_Info_v1_1.o
+LOAD S2_Installer_Tools___AudioNet_Setup_v4.o
+LOAD S2_Installer_Tools___Network___Hostname_Edit_v2.o
+LOAD S2_Adagio_OOTBF_Group_Evaluator_v1.o
+LOAD S2_AES_OOTBF_XML_Functions_v2_0_0.o
+LOAD S2_Adagio_OOTBF_Priority_Processor_v1.o
+LOAD S2_Multiple_Now_Playing_Combiner__10__v2.o
+LOAD S2_ATC_Audionet_System_Info_v1_3.o
+LOAD globals.o
+LOAD library.o
+OUTPUT(_S2_Karlberg.spl elf32-m68k)
+
+.comment        0x80054594      0x344
+ .comment       0x80054594       0x26 S2_Serial_to_Digital.o
+ .comment       0x800545ba       0x26 S2_Onkyo_TX_NR5008_Processor_v1_0.o
+ .comment       0x800545e0       0x26 S2_Onkyo_TX_NR5008_Feedback_v1_0.o
+ .comment       0x80054606       0x26 S2_Knob_Acceleration__Pkt_.o
+ .comment       0x8005462c       0x26 S2_AES_OOTBF_Source_Mode_v1_1.o
+ .comment       0x80054652       0x26 S2_AES_OOTBF_Room_Mode_v1_2.o
+ .comment       0x80054678       0x26 S2_Knob_Acceleration__Sleep_Timer__v1_0.o
+ .comment       0x8005469e       0x26 S2_Adagio_Group_Editor_v1_0_1.o
+ .comment       0x800546c4       0x26 S2_AES_OOTBF_Group_Source_Selector_v1_0.o
+ .comment       0x800546ea       0x26 S2_APAD_Text_Edit.o
+ .comment       0x80054710       0x26 S2_AADS_OOTBF_Text_Scroller_v1.o
+ .comment       0x80054736       0x26 S2_AES_Installer_Tools_Small_v1_1.o
+ .comment       0x8005475c       0x26 S2_Adagio_System_Info_v1_1.o
+ .comment       0x80054782       0x26 S2_Installer_Tools___AudioNet_Setup_v4.o
+ .comment       0x800547a8       0x26 S2_Installer_Tools___Network___Hostname_Edit_v2.o
+ .comment       0x800547ce       0x26 S2_Adagio_OOTBF_Group_Evaluator_v1.o
+ .comment       0x800547f4       0x26 S2_AES_OOTBF_XML_Functions_v2_0_0.o
+ .comment       0x8005481a       0x26 S2_Adagio_OOTBF_Priority_Processor_v1.o
+ .comment       0x80054840       0x26 S2_Multiple_Now_Playing_Combiner__10__v2.o
+ .comment       0x80054866       0x26 S2_ATC_Audionet_System_Info_v1_3.o
+ .comment       0x8005488c       0x26 globals.o
+ .comment       0x800548b2       0x26 library.o

@@ -1,0 +1,125 @@
+/*******************************************************************************************
+  SIMPL+ Module Information
+  (Fill in comments below)
+*******************************************************************************************/
+/*
+Dealer Name:
+System Name:
+System Number:
+Programmer:
+Comments:
+*/
+
+/*******************************************************************************************
+  Compiler Directives
+  (Uncomment and declare compiler directives as needed)
+*******************************************************************************************/
+// #SYMBOL_NAME ""
+// #HINT ""
+#DEFINE_CONSTANT	MAXGROUPS	6
+#DEFINE_CONSTANT	MAXROOMS	24
+
+#DEFINE_CONSTANT	FALSE		0
+#DEFINE_CONSTANT	TRUE		1
+#CATEGORY "0" 
+#DEFAULT_VOLATILE
+// #DIGITAL_EXPAND 
+// #ANALOG_SERIAL_EXPAND 
+// #OUTPUT_SHIFT 
+// #DEFAULT_NONVOLATILE
+#ENABLE_STACK_CHECKING
+/*
+#HELP_BEGIN
+   (add additional lines of help lines)
+#HELP_END
+*/
+
+/*******************************************************************************************
+  Include Libraries
+  (Uncomment and include additional libraries as needed)
+*******************************************************************************************/
+// #CRESTRON_LIBRARY ""
+// #USER_LIBRARY ""
+
+/*******************************************************************************************
+  DIGITAL, ANALOG and SERIAL INPUTS and OUTPUTS
+  (Uncomment and declare inputs and outputs as needed)
+*******************************************************************************************/
+DIGITAL_INPUT GroupVolumeTrack;
+DIGITAL_INPUT GroupActive[MAXGROUPS];
+ANALOG_INPUT GroupRoomsLow[MAXGROUPS];
+ANALOG_INPUT GroupRoomsHigh[MAXGROUPS]; 
+// STRING_INPUT 
+// BUFFER_INPUT 
+
+// DIGITAL_OUTPUT 
+ANALOG_OUTPUT LinkedGroupsLow[MAXGROUPS];
+ANALOG_OUTPUT LinkedGroupsHigh[MAXGROUPS];
+ANALOG_OUTPUT GroupForRoom[MAXROOMS];
+
+
+FUNCTION Evaluate()
+	{
+    LONG_INTEGER GroupConfig[MAXGROUPS];
+    LONG_INTEGER NewGroupConfig[MAXGROUPS];
+    INTEGER i;
+    INTEGER j;
+    INTEGER k;
+    INTEGER Found;
+    
+    for(i = 1 to MAXGROUPS)
+    	{
+    	GroupConfig[i] = GroupRoomsHigh[i];
+    	GroupConfig[i] = (GroupConfig[i] << 12) | GroupRoomsLow[i];
+    	NewGroupConfig[i] = GroupConfig[i];
+    	}
+	for(i = 1 to MAXGROUPS)
+    	{
+    	if(GroupActive[i] = TRUE)
+    		{
+	   		for(j = 1 to MAXGROUPS)
+	   			{
+	   			for(k = 1 to MAXGROUPS)
+	   				{
+					if(((NewGroupConfig[i] & GroupConfig[k]) > 0) && (GroupActive[i] = TRUE) && (GroupActive[k] = TRUE))
+						{
+						NewGroupConfig[i] = (NewGroupConfig[i] | GroupConfig[k]);
+	    				}
+	    			}
+	    		}
+	    	}
+	    else
+	    	NewGroupConfig[i] = 0;
+	    LinkedGroupsLow[i] = (NewGroupConfig[i] & 0x00000FFF);
+	    LinkedGroupsHigh[i] = (NewGroupConfig[i] >> 12);
+	    }   	
+    for(i = 1 to MAXROOMS)
+    	{
+    	Found = FALSE;
+    	for(j = 1 to MAXGROUPS)
+    		{
+    		if((NewGroupConfig[j] & (0x00000001 << (i - 1))) > 0)
+    			{
+    			Found = TRUE;
+    			if(GroupVolumeTrack= TRUE)
+    				GroupForRoom[i] = j;
+    			else
+    				GroupForRoom[i] = 0;
+//    			TrackedRoomsLow[i] = (NewGroupConfig[j] | 0x00000FFF);
+//  			TrackedRoomsHigh[i] = (NewGroupConfig[j] >> 12);
+    			break;
+    			}
+    		}
+    	if(Found = FALSE)
+    		{
+    		GroupForRoom[i] = 0;
+//    		TrackedRoomsLow[i] = (NewGroupConfig[j] | 0x00000FFF);
+//    		TrackedRoomsHigh[i] = (NewGroupConfig[j] >> 12);
+   			} 			
+    	}
+    }
+
+Change GroupActive
+	{
+	Call Evaluate();
+	}
